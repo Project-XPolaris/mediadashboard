@@ -1,0 +1,122 @@
+import {Tag} from "antd";
+import SectionContainer from "@/components/YouComic/BookFilterDrawer/sections/SectionContainer";
+import {BookFilter} from "@/components/YouComic/BookFilterDrawer";
+
+interface ActiveFilterSectionPropsType {
+  filter: BookFilter
+  orderItems: any[]
+  onFilterChange:(filter:any) => void
+}
+
+
+export default function ActiveFilterSection({filter, orderItems,onFilterChange}: ActiveFilterSectionPropsType) {
+  const renderOrderTag = () =>
+    filter.order.map((filterOrderItem: { orderKey: string, order: string }) => {
+      const filterItem = orderItems.find(orderItem => filterOrderItem.orderKey === orderItem.key);
+      const onCloseTag = () => {
+        onFilterChange({
+          ...filter,
+          order:filter.order.filter((item: { orderKey: string, order: string }) => filterOrderItem.orderKey !== item.orderKey)
+        })
+      };
+      return (
+        <Tag key={filterOrderItem.orderKey} color="geekblue" closable onClose={onCloseTag}>{filterItem?.title}{filterOrderItem.order === "asc"?" 升序":" 降序"}</Tag>
+      )
+    });
+  const renderSearchTag = () => {
+    if (filter.nameSearch !== undefined){
+      const onSearchNameClose = () => {
+        onFilterChange({
+          ...filter,
+          nameSearch:undefined
+        })
+      };
+      return (
+        <Tag color="geekblue" closable onClose={onSearchNameClose} key="nameSearch">{`搜索: ${filter.nameSearch}`}</Tag>
+      )
+    }
+    return undefined
+  };
+  const renderPathSearchTag = () => {
+    if (filter.pathSearch !== undefined){
+      const onPathSearchNameClose = () => {
+        onFilterChange({
+          ...filter,
+          pathSearch:undefined
+        })
+      };
+      return (
+        <Tag color="geekblue" closable onClose={onPathSearchNameClose} key="nameSearch">{`路径搜索: ${filter.pathSearch}`}</Tag>
+      )
+    }
+    return undefined
+  };
+  const renderTimeRange = () => {
+    if(filter.endTime && filter.startTime){
+      const onTimeRangeClose = () => {
+        onFilterChange({
+          ...filter,
+          startTime:undefined,
+          endTime:undefined
+        })
+      };
+      return (
+        <Tag color="geekblue" closable onClose={onTimeRangeClose} key="createTimeRange">{`创建时间:${filter.startTime} 至 ${filter.endTime}`}</Tag>
+      )
+    }
+    return undefined
+  };
+  const renderTagFilter = () => {
+    return filter.tags.map(item => {
+      const onTagClose = () => {
+        onFilterChange({
+          ...filter,
+          tags:filter.tags.filter(filterTag => filterTag.id !== item.id)
+        })
+      };
+      return (
+        <Tag color="geekblue" closable onClose={onTagClose} key={item.id + "tag"}>{`标签:${item.name}`}</Tag>
+      )
+    })
+  };
+  const renderLibraryFilter = () => {
+    return filter.library.map(it => {
+      const onTagClose = () => {
+        onFilterChange({
+          ...filter,
+          library:filter.library.filter(filterLibrary => filterLibrary.id !== it.id)
+        })
+      };
+      return (
+        <Tag color="geekblue" closable onClose={onTagClose} key={it.id + "library"}>{`书库:${it.name} (${it.id})`}</Tag>
+      )
+    })
+  }
+  const renderTagSearchFilter = () => {
+    if (!filter.tagSearch) {
+      return undefined
+    }
+    const displayTagType = filter.tagSearchType ?? "All"
+    const onTagClose = () => {
+      onFilterChange({
+        ...filter,
+        tagSearch:undefined,
+        tagSearchType:undefined
+      })
+    };
+    return (
+      <Tag color="geekblue" closable onClose={onTagClose} key={filter.tagSearch}>{`搜索标签:${filter.tagSearch} (${displayTagType})`}</Tag>
+    )
+  }
+  return (
+    <SectionContainer title="已激活">
+      {renderOrderTag()}
+      {renderSearchTag()}
+      {renderTimeRange()}
+      {renderTagFilter()}
+      {renderLibraryFilter()}
+      {renderPathSearchTag()}
+      {renderTagSearchFilter()}
+    </SectionContainer>
+  );
+}
