@@ -1,4 +1,4 @@
-import {ListContainer} from "@/services/youvideo/library";
+import {BaseResponse, ListContainer} from "@/services/youvideo/library";
 import {youVideoRequest} from "@/services/youvideo/client";
 
 export type fetchVideoListParams = {
@@ -6,8 +6,9 @@ export type fetchVideoListParams = {
   pageSize?: number;
   library?:number
   search?:string
+  order?:string
 }
-export const fetchVideoList = async (params: fetchVideoListParams): Promise<ListContainer<YouVideoAPI.Video>> => {
+export const fetchVideoList = async (params: fetchVideoListParams): Promise<BaseResponse<ListContainer<YouVideoAPI.Video>>> => {
   return youVideoRequest(`/videos`, {
     method: "GET",
     params

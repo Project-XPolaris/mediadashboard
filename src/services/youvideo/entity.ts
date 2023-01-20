@@ -7,7 +7,7 @@ export type EntityQueryParams = {
   order?: string;
   library?:number
 }
-export const fetchEntityList = async (params:EntityQueryParams):Promise<ListContainer<YouVideoAPI.Entity>> => {
+export const fetchEntityList = async (params:EntityQueryParams):Promise<BaseResponse<ListContainer<YouVideoAPI.Entity>>> => {
   return youVideoRequest('/entities', {
     method: "GET",
     params

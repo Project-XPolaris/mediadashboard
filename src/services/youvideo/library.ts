@@ -17,14 +17,16 @@ export type ListContainer<T> = {
 }
 export type BaseResponse<T> = {
   success: boolean
-  data: T
+  data?: T
+  err: string
+  code: string
 }
 
-export async function fetchLibraryList(): Promise<ListContainer<Library> & BaseResponse<undefined>> {
+export async function fetchLibraryList(): Promise<BaseResponse<ListContainer<Library>>> {
   return youVideoRequest(`/library`, {
     method: 'GET',
-    params:{
-      pageSize:1000
+    params: {
+      pageSize: 1000
     }
   });
 }
@@ -59,13 +61,15 @@ export async function readDirectory(path: string): Promise<Directory> {
     }
   });
 }
-export async function newLibrary(data:{path:string,private?:boolean,name:string}):Promise<BaseResponse<any>>{
+
+export async function newLibrary(data: { path: string, private?: boolean, name: string }): Promise<BaseResponse<any>> {
   return youVideoRequest(`/library`, {
     method: 'POST',
     data
   });
 }
-export async function newGenerateVideoMetaTask(libraryId:number):Promise<BaseResponse<any>>{
+
+export async function newGenerateVideoMetaTask(libraryId: number): Promise<BaseResponse<any>> {
   return youVideoRequest(`/library/${libraryId}/meta`, {
     method: 'POST',
   });

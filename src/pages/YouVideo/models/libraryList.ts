@@ -21,12 +21,21 @@ const libraryListModel = () => {
   })
   const initData = async ({page = pagination}: { page?: DataPagination }) => {
     const response = await fetchLibraryList()
-    if (response?.result) {
-      setLibraryList(response.result)
+    if (!response.success) {
+      message.error(response.err)
+      return
+    }
+    const dataList = response.data
+    if (!dataList) {
+      message.error("library list is null")
+      return
+    }
+    if (dataList.result) {
+      setLibraryList(dataList.result)
       setPagination({
         page: page.page,
         pageSize: page.pageSize,
-        total: response.count
+        total: dataList.count
       })
     }
   }

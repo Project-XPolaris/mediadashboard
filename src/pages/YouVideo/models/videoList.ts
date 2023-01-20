@@ -5,11 +5,13 @@ import {YouVideoConfig} from "@/models/appsModel";
 import {getYouVideoConfig} from "@/utils/config";
 import {addVideoToEntity, newEntity} from "@/services/youvideo/entity";
 import {fetchLibraryList, Library} from "@/services/youvideo/library";
+import {message} from "antd";
+import {getOrderQueryParam} from "@/utils/param";
 
 export type VideoItem = {} & YouVideoAPI.Video
 export type VideoFilter = {
-  name?:string,
-  library?:number
+  name?: string,
+  library?: number
 }
 const videoListModel = () => {
   const [videoList, setVideoList] = useState<VideoItem[]>([]);
@@ -21,7 +23,7 @@ const videoListModel = () => {
   const [selectedVideo, setSelectedVideo] = useState<VideoItem[]>([])
   const [libraryList, setLibraryList] = useState<Library[]>([])
   const [filter, setFilter] = useState<VideoFilter>({})
-  const [order, setOrder] = useState<string>("iddesc")
+  const [order, setOrder] = useState<string>("id desc")
 
   const loadData = async (
     {
@@ -31,19 +33,30 @@ const videoListModel = () => {
     }: {
       page?: DataPagination,
       paramFilter?: VideoFilter,
-      queryOrder?:string
+      queryOrder?: string
     }) => {
     const response = await fetchVideoList({
       page: page.page,
       pageSize: page.pageSize,
-      ...paramFilter
+      ...paramFilter,
+      search:paramFilter.name,
+      order: getOrderQueryParam(queryOrder),
     })
-    if (response?.result) {
+    if (!response.success) {
+      message.error(response.err)
+      return
+    }
+    const listWrap = response.data
+    if (!listWrap) {
+      message.error("video list is null")
+      return
+    }
+    if (listWrap.result) {
       const config: YouVideoConfig | null = getYouVideoConfig()
       if (config === null) {
         return
       }
-      const newList = response.result
+      const newList = listWrap.result
       newList.forEach((video) => {
         if (video.files) {
           video.files.forEach((file) => {
@@ -55,7 +68,7 @@ const videoListModel = () => {
       setPagination({
         page: page.page,
         pageSize: page.pageSize,
-        total: response.count
+        total: listWrap.count
       })
     }
   }
@@ -71,14 +84,21 @@ const videoListModel = () => {
   }
   const loadLibrary = async () => {
     const response = await fetchLibraryList()
-    if (response?.result) {
-      setLibraryList(response.result)
+    if (!response.success) {
+      message.error(response.err)
+      return
     }
+    const listWrap = response.data
+    if (!listWrap) {
+      message.error("library list is null")
+      return
+    }
+    setLibraryList(listWrap.result)
   }
   const updateFilter = async (newFilter: VideoFilter) => {
     setFilter(newFilter)
     await loadData({
-      paramFilter:newFilter
+      paramFilter: newFilter
     })
   }
   const uploadOrder = async (newOrder: string) => {

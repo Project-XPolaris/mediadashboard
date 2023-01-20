@@ -5,6 +5,7 @@ import {YouVideoConfig} from "@/models/appsModel";
 import {getYouVideoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youvideo/library";
 import {getOrderQueryParam} from "@/utils/param";
+import {message} from "antd";
 export type EntityItem = {} & YouVideoAPI.Entity
 export type EntityFilter = {
   library?: number,
@@ -38,29 +39,36 @@ const entityListModel = () => {
       search:paramFilter.name,
       library:paramFilter.library,
     })
-    if (response?.result) {
+    const dataList  = response.data
+    if (!dataList){
+      return
+    }
+    if (dataList.result) {
       const config: YouVideoConfig | null = getYouVideoConfig()
       if (config === null) {
         return
       }
-      const newList = response.result
+      const newList = dataList.result
       newList.forEach((entity) => {
         if (entity.cover) {
           entity.cover = config.baseUrl + entity.cover
         }
       })
-      setEntityList(response.result)
+      setEntityList(dataList.result)
       setPagination({
         page: page.page,
         pageSize: page.pageSize,
-        total: response.count
+        total: dataList.count
       })
     }
   }
   const loadLibrary = async () => {
     const response = await fetchLibraryList()
-    if (response?.result) {
-      setLibraryList(response.result)
+    if (!response.success) {
+      message.error(response.err)
+    }
+    if (response.data) {
+        setLibraryList(response.data.result)
     }
   }
   const applyFromSource = async (entityId: number, source: string, sourceId: string) => {
