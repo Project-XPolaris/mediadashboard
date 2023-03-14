@@ -1,15 +1,42 @@
 .imageItem {
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  //text-align: center;
+  //display: flex;
+  //justify-content: center;
+  //align-items: center;
+  //min-height: 300px;
+  height: 180px;
 }
 
 .image {
-  height: 240px;
+  max-height: 70%;
   object-fit: contain;
+  max-width: 70%;
 }
-
+.cardInfo{
+  padding: 8px;
+}
+.cardMenu{
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+.previewMask{
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  &:hover{
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+}
+.previewMaskInNone{
+  border-radius: 8px;
+  &:hover{
+    border-radius: 8px;
+  }
+}
+.sizeInfo{
+  font-size: 10px;
+}
 .pagination {
   margin-top: 32px;
 }

@@ -1,18 +1,22 @@
 import {useState} from "react";
 import {DataPagination} from "@/utils/page";
-import {applyEntityInfoFromSource, batchEntity, fetchEntityList} from "@/services/youvideo/entity";
+import {applyEntityInfoFromSource, batchEntity, fetchEntityList, updateEntity} from "@/services/youvideo/entity";
 import {YouVideoConfig} from "@/models/appsModel";
 import {getYouVideoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youvideo/library";
 import {getOrderQueryParam} from "@/utils/param";
 import {message} from "antd";
-export type EntityItem = {} & YouVideoAPI.Entity
+export type EntityItem = {
+  edit?: {
+    name?: string,
+  }
+} & YouVideoAPI.Entity
 export type EntityFilter = {
   library?: number,
   name?:string
 }
 const entityListModel = () => {
-  const [entityList, setEntityList] = useState<YouVideoAPI.Entity[]>([]);
+  const [entityList, setEntityList] = useState<EntityItem[]>([]);
   const [pagination, setPagination] = useState<DataPagination>({
     page: 1,
     pageSize: 50,
@@ -93,6 +97,37 @@ const entityListModel = () => {
     setOrder(newOrder)
     await loadData({queryOrder: newOrder})
   }
+  const setEditFieldValue = (id:number, field: string, value: any) => {
+    const newList = entityList.map((entity) => {
+      if (entity.id === id){
+        entity.edit = entity.edit || {}
+        entity.edit[field] = value
+      }
+      return entity
+    })
+    setEntityList(newList)
+
+  }
+  const saveChanges = async () => {
+    const changedEntities = entityList.filter((entity) => entity.edit)
+    for (let changedEntity of changedEntities) {
+      await updateEntity(
+        changedEntity.id,
+        {
+          name: changedEntity.edit?.name
+        }
+      )
+    }
+    await loadData({})
+  }
+  const hasChangeItem = () => entityList.some((entity) => entity.edit)
+  const clearChanges = () => {
+    const newList = entityList.map((entity) => {
+      entity.edit = undefined
+      return entity
+    })
+    setEntityList(newList)
+  }
   return {
     entityList,
     loadData,
@@ -105,7 +140,11 @@ const entityListModel = () => {
     libraryList,
     updateFilter,
     order,
-    uploadOrder
+    uploadOrder,
+    setEditFieldValue,
+    saveChanges,
+    hasChangeItem,
+    clearChanges
   }
 }
 export default entityListModel

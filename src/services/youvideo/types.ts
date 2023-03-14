@@ -7,6 +7,9 @@ declare namespace YouVideoAPI {
     library_id: number;
     type: string;
     files: File[];
+    order?: number;
+    ep?: string;
+
   }
 
   export interface File {
@@ -29,6 +32,7 @@ declare namespace YouVideoAPI {
     id: number;
     label: string;
   }
+
   export interface Entity {
     id: number;
     name: string;

@@ -58,6 +58,13 @@ export default [
         name: 'Entities',
         component: './YouVideo/Entity/List',
       },
+      {
+        hideInMenu: true,
+        access: 'youvideo',
+        path: '/youvideo/Entity/detail',
+        name: 'Entity detail',
+        component: './YouVideo/Entity/Detail',
+      },
     ],
   },
   {
