@@ -13,8 +13,14 @@ export const fetchImageList = async (param: {
   minAvgDistance?: number
   libraryId?: number
   searchLabel?: string
-  maxProbability?:number
-  minProbability?:number
+  maxProbability?: number
+  minProbability?: number
+  minWidth?: number
+  minHeight?: number
+  maxWidth?: number
+  maxHeight?: number,
+  dbTag?: string[]
+  dbTagNot?: string[]
 } = {
   page: 1,
   pageSize: 20,
@@ -36,5 +42,19 @@ export const fetchNearImageList = async ({id, maxDistance}: {
     params: {
       maxDistance
     }
+  });
+}
+
+export const deepdanbooruAnalyze = async (param: { id: number }) => {
+  return youPhotoRequest<BaseResponse<YouPhotoAPI.DeepdanbooruResult[]>>(`/image/deepdanbooru`, {
+    method: "POST",
+    params: param
+  });
+}
+
+export const uploadImageWithBase64 = async (param: { base64: string, filename: string, libraryId: number }) => {
+  return youPhotoRequest<BaseResponse<undefined>>("/image/base64", {
+    method: "POST",
+    data: param
   });
 }

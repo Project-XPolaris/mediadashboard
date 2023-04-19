@@ -12,31 +12,23 @@ import {
   UnlockOutlined
 } from "@ant-design/icons";
 import {PhotoItem} from "@/pages/YouPhoto/Photo/List/model";
-import {
-  DrawerForm,
-  PageContainer,
-  ProForm,
-  ProFormInstance,
-  ProFormSelect,
-  ProFormSlider,
-  ProFormText
-} from "@ant-design/pro-components";
+import {PageContainer} from "@ant-design/pro-components";
 import {useModel} from "@umijs/max";
-import ColorPickerDialog from "@/components/YouPhoto/ColorPickerDialog";
 import {isDarkColor} from "@/utils/color";
+import ImageDetailDrawer from "@/components/YouPhoto/ImageDetailDrawer";
+import ImageDrawerFilter from "@/pages/YouPhoto/Photo/List/filter_drawer";
 
-type RankColor = {
+export type RankColor = {
   colorRank1?: string
   colorRank2?: string
   colorRank3?: string
 }
 const ImageListPage = () => {
   const model = useModel('YouPhoto.Photo.List.model');
-  const [pickupColorDialogOpen, setPickupColorDialogOpen] = useState(false)
-  const [pickupColorTarget, setPickupColorTarget] = useState<any>()
-  const formRef = useRef<ProFormInstance>()
-  const [rankColor, setRankColor] = useState<RankColor>({})
+  const [detailImage, setDetailImage] = useState<PhotoItem>()
+  const filterRef = useRef<typeof ImageDrawerFilter>()
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
+  const [rankColor, setRankColor] = useState<RankColor>({})
   useEffect(() => {
     model.refresh({});
     model.initModel();
@@ -163,146 +155,29 @@ const ImageListPage = () => {
           }}>
             <Button icon={<SortAscendingOutlined/>}>Order</Button>
           </Dropdown>
-          <DrawerForm
-            title="Filter"
+          <ImageDrawerFilter
             open={filterDrawerOpen}
-            onFinish={async (values) => {
-              await model.updateFilter(values)
-              setFilterDrawerOpen(false)
-            }}
-            drawerProps={{
-              onClose: () => setFilterDrawerOpen(false)
-            }}
-            width={500}
+            onClose={() => setFilterDrawerOpen(false)}
+            rankColor={rankColor}
             trigger={
               <Button type={"primary"} icon={<FilterFilled/>} onClick={() => setFilterDrawerOpen(true)}>
                 Filter
               </Button>
             }
-            formRef={formRef}
-            initialValues={{
-              maxDistance: 100
-            }}
-          >
-            <ColorPickerDialog
-              open={pickupColorDialogOpen}
-              onClose={() => setPickupColorDialogOpen(false)}
-              onOk={({color}) => {
-                formRef.current?.setFieldValue(pickupColorTarget, color)
-                setPickupColorDialogOpen(false)
-                if (pickupColorTarget) {
-                  setRankColor({
-                    ...rankColor,
-                    [pickupColorTarget]: color
-                  })
-                }
-              }}
-            />
-            <ProForm.Group>
-              <ProFormSelect
-                allowClear={false}
-                name="libraryId"
-                placeholder="Select Library"
-                label="Library"
-                width={200}
-                options={[
-                  {
-                    label: 'All',
-                    value: undefined
-                  },
-                  ...model.libraryList.map(lib => {
-                    return {
-                      label: `${lib.name}(${lib.id})`,
-                      value: lib.id
-                    }
-                  })]}/>
-            </ProForm.Group>
-            <ProForm.Group title={"Color Match"}>
-              <ProFormText
-                width={140}
-                name="colorRank1"
-                label="ColorRank1"
-                fieldProps={{
-                  prefix: (
-                    <div style={{width: 8, height: 8, background: rankColor.colorRank1}}/>
-                  ),
-                }}
-                extra={
-                  <Button size={"small"} type={'link'} style={{marginTop: 4}} onClick={() => {
-                    setPickupColorDialogOpen(true)
-                    setPickupColorTarget('colorRank1')
-                  }}
-                  >Pickup</Button>
-                }
-              />
-              <ProFormText
-                name="colorRank2"
-                label="ColorRank2"
-                width={120}
-                fieldProps={{
-                  prefix: (
-                    <div style={{width: 8, height: 8, background: rankColor.colorRank2}}/>
-                  ),
-                }}
-                extra={
-                  <Button size={"small"} type={'link'} style={{marginTop: 4}} onClick={() => {
-                    setPickupColorDialogOpen(true)
-                    setPickupColorTarget('colorRank2')
-                  }}
-                  >Pickup</Button>
-                }
-              />
-              <ProFormText
-                width={120}
-                name="colorRank3"
-                label="ColorRank3"
-                fieldProps={{
-                  prefix: (
-                    <div style={{width: 8, height: 8, background: rankColor.colorRank3}}/>
-                  ),
-                }}
-                extra={
-                  <Button size={"small"} type={'link'} style={{marginTop: 4}} onClick={() => {
-                    setPickupColorDialogOpen(true)
-                    setPickupColorTarget('colorRank3')
-                  }}
-                  >Pickup</Button>
-                }
-              />
-              <ProFormSlider
-                width={120}
-                name="maxDistance"
-                label="MaxDistance"
-                max={300}
-                min={0}
-              />
-            </ProForm.Group>
-            {
-              model.filter.nearImageId && (
-                <ProForm.Group title={"Near image"} extra={
-                  <Button
-                    type={"text"}
-                    onClick={() => model.setFilter({
-                      ...model.filter,
-                      nearImageId: undefined
-                    })}>Clear</Button>
-                }>
-                  <img src={model.getCurrentNearImage()?.thumbnailUrl} width={120}/>
-                  <ProFormSlider name="nearImageDistance"
-                                 label="Near Image Distance"
-                                 max={50}
-                                 min={0}/>
-                </ProForm.Group>
-              )
-            }
-            <ProForm.Group title={"Size"}>
-
-            </ProForm.Group>
-          </DrawerForm>
+            setRankColor={setRankColor}
+          />
         </Space>
 
       ]}
     >
+      {
+        detailImage && <ImageDetailDrawer
+          open={Boolean(detailImage)}
+          onClose={() => setDetailImage(undefined)}
+          image={detailImage}
+          onRunDeepdanbooru={model.RunDeepdanbooruAnalyze}
+        />
+      }
       <Spin spinning={model.loading}>
         <Image.PreviewGroup>
           <Row gutter={[16, 16]} justify="space-around" align="middle">
@@ -332,7 +207,7 @@ const ImageListPage = () => {
                               break;
                             case "nearimage":
                               model.setFilter({...model.filter, nearImageId: it.id})
-                              setFilterDrawerOpen(true)
+                              filterRef.current
                               break;
                           }
                         }
@@ -350,7 +225,6 @@ const ImageListPage = () => {
                               src: it.rawUrl,
                               maskClassName: model.infoMode === 'none' ? styles.previewMaskInNone : styles.previewMask,
                             }}
-
                             style={{
                               objectFit: model.imageFit,
                               borderTopLeftRadius: 8,
@@ -367,11 +241,16 @@ const ImageListPage = () => {
                             <div className={styles.cardInfo}
                                  style={{color: getContentColor(it.domain)}}>
                               <Space direction="vertical" style={{width: "100%"}}>
-                                <div style={{
-                                  maxLines: 2,
-                                  overflow: "hidden",
-                                  lineBreak: "anywhere",
-                                }}>
+                                <div
+                                  style={{
+                                    maxLines: 2,
+                                    overflow: "hidden",
+                                    lineBreak: "anywhere",
+                                    cursor: "pointer"
+                                  }}
+                                  onClick={() => setDetailImage(it)
+                                  }
+                                >
                                   {it.name}
                                 </div>
                                 {

@@ -1,5 +1,5 @@
 import {extend} from "umi-request";
-import {YouPhotoConfig} from "@/models/appsModel";
+import {YouComicConfig} from "@/models/appsModel";
 import {getYouComicConfig} from "@/utils/config";
 
 export const youComicRequest = extend({
@@ -9,9 +9,9 @@ export const youComicRequest = extend({
   }
 })
 youComicRequest.interceptors.request.use((url, options) => {
-  const youComicConfig: YouPhotoConfig | null = getYouComicConfig()
+  const youComicConfig: YouComicConfig | null = getYouComicConfig()
   if (!youComicConfig) {
-    throw new Error("YouPhotoConfig is null")
+    throw new Error("YouComicConfig is null")
   }
   if (youComicConfig.token) {
     options.headers = {

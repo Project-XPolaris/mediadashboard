@@ -5,10 +5,14 @@ import {Button, Card, Divider, Popconfirm, Table} from "antd";
 import {Library} from "@/services/youphoto/library";
 import {useState} from "react";
 import NewYouPhotoLibraryDialog from "@/components/YouPhoto/NewLibraryDialog";
+import ScanOptionDialog from "@/components/YouPhoto/ScanOptionDialog";
+import LoraConfigSelectDialogDialog from "@/components/YouPhoto/LoraConfigSelectDialog";
 
 const YouPhotoLibraryListPage = () => {
   const model = useModel('YouPhoto.libraryList')
   const [createLibraryDialogOpen, setCreateLibraryDialogOpen] = useState(false)
+  const [selectColorDialogOpen, setSelectColorDialogOpen] = useState(false)
+  const [contextLibrary, setContextLibrary] = useState<Library>()
   const columns: ColumnsType<Library> = [
     {
       title: 'id',
@@ -29,20 +33,18 @@ const YouPhotoLibraryListPage = () => {
       title: 'Actions',
       dataIndex: 'id',
       key: 'id',
-      render: (text) => {
+      render: (text,record) => {
         return (
           <>
-            <Popconfirm
-              title="Are you sure to scan?"
-              onConfirm={() => model.scan(text)}
-              okText="Yes"
-              cancelText="No"
-            >
-              <a>
-                Scan
-              </a>
-            </Popconfirm>
-            <Divider type={"vertical"} />
+            <ScanOptionDialog
+              trigger={
+                <a>
+                  Scan
+                </a>
+
+              }
+              onOk={(values) => model.scan(text, values)}/>
+            <Divider type={"vertical"}/>
             <Popconfirm
               title="Are you sure to delete?"
               onConfirm={() => model.removeLibrary(text)}
@@ -53,6 +55,13 @@ const YouPhotoLibraryListPage = () => {
                 Delete
               </a>
             </Popconfirm>
+            <Divider type={"vertical"}/>
+            <a onClick={() => {
+              setSelectColorDialogOpen(true)
+              setContextLibrary(record)
+            }}>
+              Lora Train
+            </a>
           </>
         )
       }
@@ -66,6 +75,16 @@ const YouPhotoLibraryListPage = () => {
         </Button>
       </>
     }>
+      <LoraConfigSelectDialogDialog
+        open={selectColorDialogOpen}
+        onOk={({id}) => {
+          if (contextLibrary) {
+            model.loraTrain(contextLibrary.id,id)
+            setSelectColorDialogOpen(false)
+          }
+        }}
+        onClose={() => setSelectColorDialogOpen(false)}
+      />
       <NewYouPhotoLibraryDialog
         onOk={async (name, isPrivate, path) => {
           await model.create({

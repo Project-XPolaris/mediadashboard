@@ -1,5 +1,7 @@
 import {useState} from "react";
 import {YouComicConfig, YouMusicConfig, YouPhotoConfig, YouVideoConfig} from "@/models/appsModel";
+import request from 'umi-request';
+import {message} from "antd";
 
 export type Account = {
   baseUrl: string
@@ -46,10 +48,15 @@ const useAccountManager = () => {
     }
     localStorage.setItem("YouVideoConfig", JSON.stringify(youVideoConfig))
   }
-  const applyYouPhotoAccount = (account: Account) => {
+  const applyYouPhotoAccount = async (account: Account) => {
+    const response = await request.get<YouPhotoAPI.ServiceInfo>(account.baseUrl + '/info', {})
+    if (!response.success) {
+      message.error("fetch service info failed")
+    }
     const youPhotoConfig: YouPhotoConfig = {
       baseUrl: account.baseUrl,
-      token: account.token
+      token: account.token,
+      deepdanbooruEnable: response.deepdanbooruEnable
     }
     localStorage.setItem("YouPhotoConfig", JSON.stringify(youPhotoConfig))
   }
@@ -67,19 +74,19 @@ const useAccountManager = () => {
     }
     localStorage.setItem("YouComicConfig", JSON.stringify(youComicConfig))
   }
-  const applyAccount = (account: Account) => {
+  const applyAccount = async (account: Account) => {
     switch (account.client) {
       case 'YouVideo':
-        applyYouVideoAccount(account)
+        await applyYouVideoAccount(account)
         break
       case 'YouPhoto':
-        applyYouPhotoAccount(account)
+        await applyYouPhotoAccount(account)
         break
       case 'YouMusic':
-        applyYouMusicAccount(account)
+        await applyYouMusicAccount(account)
         break
       case 'YouComic':
-        applyYouComicAccount(account)
+        await applyYouComicAccount(account)
         break
     }
     window.location.reload();

@@ -30,11 +30,15 @@ export async function fetchLibraryList(): Promise<BaseResponse<ListContainer<Lib
     }
   });
 }
-
-export async function newScanLibraryTask(libraryId: number, data: {
+export type ScanTaskOptions = {
   directoryMode?: boolean
   excludeDir?: string[]
-}): Promise<BaseResponse<undefined>> {
+  videoOption?:{
+    forceNSFWCheck?: boolean
+    enableNSFWCheck?: boolean
+  }
+}
+export async function newScanLibraryTask(libraryId: number, data: ScanTaskOptions): Promise<BaseResponse<undefined>> {
   return youVideoRequest(`/library/${libraryId}/scan`, {
     method: 'POST',
     data

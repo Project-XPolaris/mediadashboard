@@ -4,6 +4,7 @@ import {fetchYouPhotoTaskList} from "@/services/youphoto/task";
 import {fetchYouMusicTaskList} from "@/services/youmusic/task";
 import {fetchYouComicTaskList} from "@/services/youcomic/task";
 import {useState} from "react";
+import {getYouComicConfig, getYouMusicConfig, getYouPhotoConfig, getYouVideoConfig} from "@/utils/config";
 
 export type TaskType =
   "YouVideo/ScanTask" |
@@ -19,7 +20,7 @@ export type TaskType =
   'YouComic/GenerateThumbnailTask' |
   'YouComic/MoveBookTask' |
   'YouComic/WriteBookMetaTask' |
-  'YouComic/RemoveEmptyTagTask'
+  'YouComic/RemoveEmptyTagTask' | string
 export type TaskItem = {
   id: string;
   type: TaskType;
@@ -64,13 +65,19 @@ const useTaskModel = () => {
     YouMusic: [],
   })
   const fetchYouComicTasks = async () => {
+    if (!getYouComicConfig()) {
+      return
+    }
     let list: TaskItem[] = []
     const youcomicTask = await fetchYouComicTaskList()
+    if (!youcomicTask.data) {
+      return
+    }
     youcomicTask.data.forEach(item => {
       list.push({
         id: item.id,
         source: 'YouComic',
-        type: YouComicTaskTypeMapping[item.type],
+        type: YouComicTaskTypeMapping[item.type] ?? 'YouComic/' + item.type,
         status: item.status,
         output: item.output,
         time: moment(item.created)
@@ -82,13 +89,19 @@ const useTaskModel = () => {
     })
   }
   const fetchYouVideoTasks = async () => {
+    if (!getYouVideoConfig()) {
+      return
+    }
     let list: TaskItem[] = []
     const youvideoTask = await fetchTaskList()
+    if (!youvideoTask.data) {
+      return
+    }
     youvideoTask.data.forEach(item => {
       list.push({
         id: item.id,
         source: 'YouVideo',
-        type: YouVideoTaskTypeMapping[item.type],
+        type: YouVideoTaskTypeMapping[item.type] ?? 'YouVideo/' + item.type,
         status: item.status,
         output: item.output,
         time: moment(item.created)
@@ -100,13 +113,19 @@ const useTaskModel = () => {
     })
   }
   const fetchYouPhotoTasks = async () => {
+    if (!getYouPhotoConfig()) {
+      return
+    }
     let list: TaskItem[] = []
     const youphotoTask = await fetchYouPhotoTaskList()
+    if (!youphotoTask.data) {
+      return
+    }
     youphotoTask.data.forEach(item => {
       list.push({
         id: item.id,
         source: 'YouPhoto',
-        type: YouPhotoTaskTypeMapping[item.type],
+        type: YouPhotoTaskTypeMapping[item.type] ?? 'YouPhoto/' + item.type,
         status: item.status,
         output: item.output,
         time: moment(item.created)
@@ -118,13 +137,16 @@ const useTaskModel = () => {
     })
   }
   const fetchYouMusicTasks = async () => {
+    if (!getYouMusicConfig()) {
+      return
+    }
     let list: TaskItem[] = []
     const youmusicTask = await fetchYouMusicTaskList()
     youmusicTask.tasks.forEach(item => {
       list.push({
         id: item.id,
         source: 'YouMusic',
-        type: YouMusicTaskTypeMapping[item.type],
+        type: YouMusicTaskTypeMapping[item.type] ?? 'YouMusic/' + item.type,
         status: item.status,
         output: item.output,
         time: moment(item.created)

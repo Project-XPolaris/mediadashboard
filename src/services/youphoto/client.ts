@@ -2,7 +2,7 @@ import {extend} from "umi-request";
 import {YouPhotoConfig} from "@/models/appsModel";
 
 export const youPhotoRequest = extend({
-  timeout: 3000,
+  timeout: 3000000,
   errorHandler: (error) => {
     console.log(error)
   }

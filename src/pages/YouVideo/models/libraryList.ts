@@ -4,7 +4,7 @@ import {
   newDeleteLibraryTask,
   newGenerateVideoMetaTask,
   newLibrary,
-  newScanLibraryTask,
+  newScanLibraryTask, ScanTaskOptions,
   syncLibraryIndex
 } from "@/services/youvideo/library";
 import {useState} from "react";
@@ -39,10 +39,7 @@ const libraryListModel = () => {
       })
     }
   }
-  const scan = async (libraryId: number, data: {
-    directoryMode?: boolean
-    excludeDir?: string[]
-  }) => {
+  const scan = async (libraryId: number, data: ScanTaskOptions) => {
     await newScanLibraryTask(libraryId, data)
     message.success("Scan task created")
   }

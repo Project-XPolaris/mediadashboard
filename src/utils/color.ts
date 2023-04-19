@@ -6,3 +6,16 @@ export const isDarkColor = (color?: string) => {
   const a = 1 - (0.299 * parseInt(color.substr(1, 2), 16) + 0.587 * parseInt(color.substr(3, 2), 16) + 0.114 * parseInt(color.substr(5, 2), 16)) / 255;
   return a > 0.5;
 }
+
+export const getStatusColor = (status: string) => {
+  switch (status) {
+    case "Running":
+      return "blue";
+    case "Error":
+      return "red";
+    case "Done":
+      return "green";
+    default:
+      return undefined;
+  }
+}

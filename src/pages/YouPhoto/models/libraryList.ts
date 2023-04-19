@@ -1,5 +1,12 @@
 import {useEffect, useState} from "react";
-import {createLibrary, deleteLibrary, fetchLibraryList, Library, scanLibrary} from "@/services/youphoto/library";
+import {
+  createLibrary,
+  deleteLibrary,
+  fetchLibraryList,
+  Library, newLoraTrainTask,
+  scanLibrary,
+  ScanLibraryOptions
+} from "@/services/youphoto/library";
 import {message} from "antd";
 
 const libraryListModel = () => {
@@ -21,16 +28,20 @@ const libraryListModel = () => {
     message.success("Library delete task created")
     await loadData()
   }
-  const scan = async (libraryId: number) => {
-    await scanLibrary({id: libraryId})
+  const scan = async (libraryId: number,option:ScanLibraryOptions) => {
+    await scanLibrary({id: libraryId,option})
     message.success("Library scan task created")
+  }
+  const loraTrain = async (libraryId: number,configId:number) => {
+    await newLoraTrainTask(libraryId,configId)
+    message.success("lora train task create")
   }
   useEffect(() => {
     loadData()
   }, []);
 
   return {
-    libraryList, create, removeLibrary, scan
+    libraryList, create, removeLibrary, scan,loraTrain
   }
 }
 export default libraryListModel

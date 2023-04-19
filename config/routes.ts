@@ -85,6 +85,12 @@ export default [
         name: 'Photos',
         component: './YouPhoto/Photo/List',
       },
+      {
+        access: 'youphoto',
+        path: '/youphoto/lora/list',
+        name: 'Lora Config',
+        component: './YouPhoto/Lora/List',
+      },
     ],
   },
   {

@@ -1,29 +1,40 @@
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import { SelectLang, useModel } from '@umijs/max';
-import { Space } from 'antd';
+import {EditOutlined, QuestionCircleOutlined} from '@ant-design/icons';
+import {SelectLang, useModel} from '@umijs/max';
+import {Space} from 'antd';
 import React from 'react';
 import Avatar from './AvatarDropdown';
 import styles from './index.less';
 import TaskDrawer from "@/components/Tasks/Drawer";
+import SDWDrawer from "@/components/YouPhoto/SDWDrawer";
 
 export type SiderTheme = 'light' | 'dark';
 
 const GlobalHeaderRight: React.FC = () => {
-  const { initialState } = useModel('@@initialState');
+  const {initialState} = useModel('@@initialState');
   const [open, setOpen] = React.useState(false);
   if (!initialState || !initialState.settings) {
     return null;
   }
+  const sdwModel = useModel('sdwModel')
 
-  const { navTheme, layout } = initialState.settings;
+  const {navTheme, layout} = initialState.settings;
   let className = styles.right;
 
   if ((navTheme === 'realDark' && layout === 'top') || layout === 'mix') {
     className = `${styles.right}  ${styles.dark}`;
   }
+  const isYouPhotoActive = () => {
+    return window.location.pathname.startsWith('/youphoto')
+  }
   return (
     <Space className={className}>
       <TaskDrawer open={open} onClose={() => setOpen(false)}/>
+      <SDWDrawer
+        open={sdwModel.open}
+        onClose={() => sdwModel.setOpen(false)}
+
+      />
+
       {/*<HeaderSearch*/}
       {/*  className={`${styles.action} ${styles.search}`}*/}
       {/*  placeholder="站内搜索"*/}
@@ -61,10 +72,21 @@ const GlobalHeaderRight: React.FC = () => {
           setOpen(true)
         }}
       >
-        <QuestionCircleOutlined />
+        <QuestionCircleOutlined/>
       </span>
-      <Avatar />
-      <SelectLang className={styles.action} />
+      {
+        isYouPhotoActive() &&
+        <span
+          className={styles.action}
+          onClick={() => {
+            sdwModel.setOpen(true)
+          }}
+        >
+        <EditOutlined/>
+      </span>
+      }
+      <Avatar/>
+      <SelectLang className={styles.action}/>
     </Space>
   );
 };

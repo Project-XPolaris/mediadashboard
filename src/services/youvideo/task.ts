@@ -26,6 +26,10 @@ export type GenerateVideoMetaTaskOutput = {
   currentPath: string;
   currentName: string;
 }
+export type CreateVideoOutput = {
+  filename: string;
+  path: string;
+}
 export type DeleteLibraryTaskOutput = {
   id: number;
   path:string;
@@ -35,5 +39,13 @@ export type Output = ScanLibraryTaskOutput | DeleteLibraryTaskOutput | GenerateV
 export const fetchTaskList = async (): Promise<BaseResponse<Task<Output>[]>> => {
   return youVideoRequest(`/task`, {
     method: 'GET',
+  });
+}
+export const fetchTaskById = async (taskId: string): Promise<BaseResponse<Task<Output>>> => {
+  return youVideoRequest(`/task/object`, {
+    method: 'GET',
+    params: {
+      id: taskId
+    }
   });
 }

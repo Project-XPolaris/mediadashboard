@@ -7,6 +7,7 @@ export type YouVideoConfig = {
 export type YouPhotoConfig = {
   baseUrl: string
   token?: string
+  deepdanbooruEnable: boolean
 }
 export type YouMusicConfig = {
   baseUrl: string

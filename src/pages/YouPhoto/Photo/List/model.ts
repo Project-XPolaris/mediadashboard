@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {message} from "antd";
-import {fetchImageList} from "@/services/youphoto/image";
+import {deepdanbooruAnalyze, fetchImageList} from "@/services/youphoto/image";
 import {DataPagination} from "@/utils/page";
 import {getYouPhotoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youphoto/library";
@@ -22,7 +22,12 @@ export type PhotoListFilter = {
   searchLabel?: string
   maxProbability?: number
   minProbability?: number
-
+  minWidth?: number
+  minHeight?: number
+  maxWidth?: number
+  maxHeight?: number
+  dbTag?: string[]
+  dbTagNot?: string[]
 }
 export type InfoMode = "none" | "simple" | "full"
 const usePhotoListModel = () => {
@@ -33,7 +38,7 @@ const usePhotoListModel = () => {
   const [imageFit, setImageFit] = useState<"contain" | "cover">("cover")
   const [imageSpan, setImageSpan] = useState<number | undefined>(6)
   const [order, setOrder] = useState<string>("id desc")
-  const [infoMode, setInfoMode] = useState<InfoMode>("none")
+  const [infoMode, setInfoMode] = useState<InfoMode>("full")
   const [libraryList, setLibraryList] = useState<Library[]>([])
   const initModel = async () => {
     const libraryResponse = await fetchLibraryList()
@@ -55,7 +60,13 @@ const usePhotoListModel = () => {
       libraryId = filter.libraryId,
       searchLabel = filter.searchLabel,
       maxProbability = filter.maxProbability,
-      minProbability = filter.minProbability
+      minProbability = filter.minProbability,
+      minWidth = filter.minWidth,
+      minHeight = filter.minHeight,
+      maxWidth = filter.maxWidth,
+      maxHeight = filter.maxHeight,
+      dbTag = filter.dbTag,
+      dbTagNot = filter.dbTagNot,
     }:
       {
         queryPage?: number,
@@ -71,6 +82,12 @@ const usePhotoListModel = () => {
         searchLabel?: string
         maxProbability?: number
         minProbability?: number
+        minWidth?: number
+        minHeight?: number
+        maxWidth?: number
+        maxHeight?: number,
+        dbTag?: string[]
+        dbTagNot?: string[]
       }) => {
     try {
       setPhotos([])
@@ -88,7 +105,13 @@ const usePhotoListModel = () => {
         libraryId,
         searchLabel,
         maxProbability,
-        minProbability
+        minProbability,
+        minWidth,
+        minHeight,
+        maxWidth,
+        maxHeight,
+        dbTag,
+        dbTagNot
       });
       if (response.success) {
         const youPhotoConfig = await getYouPhotoConfig()
@@ -142,6 +165,20 @@ const usePhotoListModel = () => {
       queryPage: 1
     })
   }
+  const RunDeepdanbooruAnalyze = async (id: number) => {
+    const response = await deepdanbooruAnalyze({id: id})
+    if (!response.success) {
+      message.error(response.err)
+      return
+    }
+    message.success("analyze success")
+    setPhotos(photos.map(photo => {
+      if (photo.id === id) {
+        photo.deepdanbooruResult = response.data
+      }
+      return photo
+    }))
+  }
   return {
     photos,
     loading,
@@ -161,6 +198,7 @@ const usePhotoListModel = () => {
     infoMode,
     initModel,
     libraryList,
+    RunDeepdanbooruAnalyze
   };
 };
 export default usePhotoListModel;

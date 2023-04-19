@@ -16,6 +16,9 @@ import YouComicGenerateThumbnailTaskItem from "@/components/Tasks/Drawer/Items/Y
 import YouComicMoveBookItem from "@/components/Tasks/Drawer/Items/YouComicMoveBookTaskItem";
 import YouComicWriteMetaTaskItem from "@/components/Tasks/Drawer/Items/YouComicWriteMetaTaskItem";
 import YouComicRemoveEmptyTaskItem from "@/components/Tasks/Drawer/Items/YouComicRemoveEmptyTaskItem";
+import TaskViewer from "@/components/TaskViewer";
+import {useState} from "react";
+import YouPhotoLoraTrainTaskItem from "@/components/Tasks/Drawer/Items/YouPhotoLoraTrainTaskItem";
 
 export type  TaskDrawerProps = {
   open?: boolean
@@ -24,6 +27,7 @@ export type  TaskDrawerProps = {
 }
 const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
   const model = useTaskModel()
+  const [currentTask, setCurrentTask] = useState<TaskItem | undefined>()
   useRequest(model.fetchYouComicTasks, {
     pollingInterval: 1000,
     retryCount:3
@@ -40,38 +44,43 @@ const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
     pollingInterval: 1000,
     retryCount:3
   })
+  const onTaskClick = (task: TaskItem) => {
+    setCurrentTask(task)
+  }
   const renderItem = (item: TaskItem) => {
     switch (item.type) {
       case 'YouVideo/ScanTask':
-        return <><YouVideoScanTaskItem task={item} className={styles.item}/> <Divider/></>
+        return <><div onClick={() => onTaskClick(item)}><YouVideoScanTaskItem task={item} className={styles.item} key={item.id}/></div> <Divider/></>
       case 'YouVideo/SyncIndexTask':
-        return <><YouVideoSyncIndexTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouVideoSyncIndexTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case 'YouVideo/DeleteTask':
-        return <><YouVideoDeleteTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouVideoDeleteTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case 'YouVideo/MetaTask':
-        return <><YouVideoGenerateMetaTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouVideoGenerateMetaTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouPhoto/DeleteTask":
-        return <><YouPhotoDeleteTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouPhotoDeleteTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouPhoto/ScanTask":
-        return <><YouPhotoScanTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><div onClick={() => onTaskClick(item)}><YouPhotoScanTaskItem task={item} className={styles.item} key={item.id}/></div><Divider/></>
+      case "YouPhoto/LoraTrain":
+        return <><YouPhotoLoraTrainTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouMusic/ScanTask":
-        return <><YouMusicScanTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouMusicScanTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/ScanTask":
-        return <><YouComicScanTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicScanTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/MatchTagTask":
-        return <><YouComicMatchTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicMatchTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/DeleteTask":
-        return <><YouComicDeleteTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicDeleteTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/GenerateThumbnailTask":
-        return <><YouComicGenerateThumbnailTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicGenerateThumbnailTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/MoveBookTask":
-        return <><YouComicMoveBookItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicMoveBookItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case "YouComic/WriteBookMetaTask":
-        return <><YouComicWriteMetaTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicWriteMetaTaskItem task={item} className={styles.item} key={item.id}/><Divider/></>
       case 'YouComic/RemoveEmptyTagTask':
-        return <><YouComicRemoveEmptyTaskItem task={item} className={styles.item}/><Divider/></>
+        return <><YouComicRemoveEmptyTaskItem task={item} className={styles.item} key={item.id}/></>
     }
-    return <div>未知任务</div>
+    return <><div>{item.type}</div><Divider/></>
   }
   return (
     <Drawer
@@ -82,6 +91,14 @@ const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
       visible={open}
       width={400}
     >
+      {
+        currentTask && <TaskViewer
+          taskId={currentTask?.id}
+          open={Boolean(currentTask)}
+          onClose={() => setCurrentTask(undefined)}
+          service={currentTask?.type.split('/')[0]}
+        />
+      }
       {
         model.taskList()?.map(it => {
           return renderItem(it)
