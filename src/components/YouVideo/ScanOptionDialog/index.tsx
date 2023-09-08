@@ -33,6 +33,10 @@ const ScanOptionDialog = ({trigger,onOk}: ScanOptionDialogProps) => {
         <ProFormSwitch name={["videoOption","enableNSFWCheck"]} label='Enable'/>
         <ProFormSwitch name={["videoOption","forceNSFWCheck"]} label='Force'/>
       </ProFormGroup>
+      <ProFormGroup title={"Meta"}>
+        <ProFormSwitch name={["videoOption","forceRefreshMeta"]} label='Forece refresh meta'/>
+        <ProFormSwitch name={["videoOption","forceRefreshSub"]} label='Force refresh sub'/>
+      </ProFormGroup>
     </ModalForm>
   )
 }

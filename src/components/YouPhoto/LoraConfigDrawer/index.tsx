@@ -188,6 +188,7 @@ const initValues: LoraTrainConfig = {
     additional_parameters: "",
     network_weights: ""
   },
+
   step: 100,
   preprocess_config: {
     id_task: "",
