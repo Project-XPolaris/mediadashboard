@@ -11,6 +11,8 @@ export type ScanOptionFormValues = {
   forceNsfwCheck: boolean
   enableDeepdanbooruCheck: boolean
   forceDeepdanbooruCheck: boolean
+  enableTagger: boolean
+  forceTagger: boolean
 }
 export type ScanOptionDialogProps = {
   trigger: React.ReactElement
@@ -36,7 +38,9 @@ const ScanOptionDialog = ({trigger, onOk}: ScanOptionDialogProps) => {
         enableNsfwCheck: true,
         forceNsfwCheck: false,
         enableDeepdanbooruCheck: true,
-        forceDeepdanbooruCheck: false
+        forceDeepdanbooruCheck: false,
+        enableTagger: true,
+        forceTagger: false,
       }}
     >
       <ProFormGroup title={"Color pattern"}>
@@ -55,6 +59,10 @@ const ScanOptionDialog = ({trigger, onOk}: ScanOptionDialogProps) => {
       <ProFormGroup title={"Deepdanbooru"}>
         <ProFormSwitch name={"enableDeepdanbooruCheck"} label='Enable'/>
         <ProFormSwitch name={"forceDeepdanbooruCheck"} label='Force'/>
+      </ProFormGroup>
+      <ProFormGroup title={"Tagger"}>
+        <ProFormSwitch name={"enableTagger"} label='Enable'/>
+        <ProFormSwitch name={"forceTagger"} label='Force'/>
       </ProFormGroup>
     </ModalForm>
   )

@@ -13,13 +13,15 @@ export type ImageDetailDrawerProps = {
   image: PhotoItem
   onClose?: () => void
   onRunDeepdanbooru: (id: number) => void
+  onRunImageTagger: (id: number) => void
 }
 const ImageDetailDrawer = (
   {
     open,
     image,
     onClose,
-    onRunDeepdanbooru
+    onRunDeepdanbooru,
+    onRunImageTagger
   }: ImageDetailDrawerProps) => {
   const sdwModel = useModel('sdwModel')
   const [textDisplayDialogOpen, setTextDisplayDialogOpen] = useState(false)
@@ -29,7 +31,7 @@ const ImageDetailDrawer = (
     <Drawer
       open={open}
       onClose={onClose}
-      width={480}
+      width={"60vw"}
       title={image.name}
       extra={
         <Dropdown menu={{
@@ -37,12 +39,19 @@ const ImageDetailDrawer = (
             {
               "label": "Deepdanbooru Analyze",
               key: "deepdanbooru",
+            },
+            {
+              "label": "Image Tagger",
+              key: "imagetagger",
             }
           ],
           onClick: (menu) => {
             switch (menu.key) {
               case 'deepdanbooru':
                 onRunDeepdanbooru(image.id)
+                break;
+              case 'imagetagger':
+                onRunImageTagger(image.id)
                 break;
             }
           }
@@ -259,7 +268,77 @@ const ImageDetailDrawer = (
               </Row>
             </Col>
           }
+          {
+            image.tag && image.tag.length != 0 &&
+            <Col xs={24}>
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      label: "Copy as prompt",
+                      key: "1"
+                    },
+                    {
+                      label: "Send to stable diffusion",
+                      key: "2"
+                    }
+                  ],
+                  onClick: (menu) => {
+                    switch (menu.key) {
+                      case "1":
+                        const tags = image.tag
+                        if (!tags) {
+                          return
+                        }
+                        setTextDisplayText(tags.map(result => result.tag).join(','))
+                        setTextDisplayDialogOpen(true)
+                        break
+                      case "2":
+                        const tags2 = image.tag
+                        if (!tags2) {
+                          return
+                        }
+                        sdwModel.applyPrompt(tags2.map(result => result.tag).join(','))
+                        sdwModel.setOpen(true)
+                    }
+                  }
+                }}
+              >
+                <Title level={5} style={{flex: 1, marginTop: 16, marginBottom: 16}}>
+                  Tags
+                </Title>
+              </Dropdown>
 
+              <Row gutter={[16, 16]}>
+                {
+                  image.tag.map(result => {
+                    return (
+                      <Col
+                        key={result.tag}
+                        xs={24}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: 'rgb(0,0,0,.05)',
+                          }}
+                          className={styles.colorItem}
+                        >
+                          <div className={styles.colorText}>
+                            {
+                              result.tag
+                            }
+                          </div>
+                          <div>
+                            {(result.rank * 100).toFixed(2)}%
+                          </div>
+                        </div>
+                      </Col>
+                    )
+                  })
+                }
+              </Row>
+            </Col>
+          }
         </Col>
       </Row>
 

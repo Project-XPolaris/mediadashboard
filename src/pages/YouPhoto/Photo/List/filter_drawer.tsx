@@ -167,6 +167,10 @@ const ImageDrawerFilter= (
         <ProFormSelect name={"dbTag"} label={"Include Tag"} mode={"tags"} width={"xl"}/>
         <ProFormSelect name={"dbTagNot"} label={"Not Include Tag"} mode={"tags"} width={"xl"}/>
       </ProForm.Group>
+      <ProForm.Group title={"Tagger"}>
+        <ProFormSelect name={"tag"} label={"Include Tag"} mode={"tags"} width={"xl"}/>
+        <ProFormSelect name={"tagNot"} label={"Not Include Tag"} mode={"tags"} width={"xl"}/>
+      </ProForm.Group>
 
     </DrawerForm>
   )

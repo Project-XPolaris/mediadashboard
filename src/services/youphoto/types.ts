@@ -46,6 +46,14 @@ declare namespace YouPhotoAPI {
     tag: string
     prob: number
   }
+  type ImageTag = {
+
+    "tag": string,
+    "source": string,
+    "rank": number,
+    "imageId": number
+
+  }
   type Photo = {
     id: number,
     name: string,
@@ -57,7 +65,8 @@ declare namespace YouPhotoAPI {
     domain?: string,
     imageColors?: PhotoColor[],
     classify?: Classify[],
-    deepdanbooruResult?: DeepdanbooruResult[]
+    deepdanbooruResult?: DeepdanbooruResult[],
+    tag: ImageTag[]
   }
 
   type NearImage = {

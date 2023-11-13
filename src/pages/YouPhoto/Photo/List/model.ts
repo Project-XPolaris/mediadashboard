@@ -1,9 +1,10 @@
 import {useState} from "react";
 import {message} from "antd";
-import {deepdanbooruAnalyze, fetchImageList} from "@/services/youphoto/image";
+import {deepdanbooruAnalyze, fetchImageList, getImage, imageTagger} from "@/services/youphoto/image";
 import {DataPagination} from "@/utils/page";
 import {getYouPhotoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youphoto/library";
+import {useLocalStorageState} from "ahooks";
 
 export type PhotoItem = {
   thumbnailUrl: string
@@ -28,6 +29,8 @@ export type PhotoListFilter = {
   maxHeight?: number
   dbTag?: string[]
   dbTagNot?: string[]
+  tag?: string[]
+  tagNot?: string[]
 }
 export type InfoMode = "none" | "simple" | "full"
 const usePhotoListModel = () => {
@@ -35,10 +38,16 @@ const usePhotoListModel = () => {
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState<DataPagination>({page: 1, pageSize: 24 * 3, total: 0});
   const [filter, setFilter] = useState<PhotoListFilter>({});
-  const [imageFit, setImageFit] = useState<"contain" | "cover">("cover")
-  const [imageSpan, setImageSpan] = useState<number | undefined>(6)
+  const [imageFit, setImageFit] = useLocalStorageState<"contain" | "cover">("youphoto.image.fit",{
+    defaultValue:"cover"
+  })
+  const [imageSpan, setImageSpan] = useLocalStorageState<number | undefined>("youphoto.image.span",{
+    defaultValue: 6,
+  })
   const [order, setOrder] = useState<string>("id desc")
-  const [infoMode, setInfoMode] = useState<InfoMode>("full")
+  const [infoMode, setInfoMode] = useLocalStorageState<InfoMode>("youphoto.image.mode",{
+    defaultValue: "none",
+  })
   const [libraryList, setLibraryList] = useState<Library[]>([])
   const initModel = async () => {
     const libraryResponse = await fetchLibraryList()
@@ -67,6 +76,8 @@ const usePhotoListModel = () => {
       maxHeight = filter.maxHeight,
       dbTag = filter.dbTag,
       dbTagNot = filter.dbTagNot,
+      tag = filter.tag,
+      tagNot = filter.tagNot,
     }:
       {
         queryPage?: number,
@@ -88,6 +99,8 @@ const usePhotoListModel = () => {
         maxHeight?: number,
         dbTag?: string[]
         dbTagNot?: string[]
+        tag?: string[]
+        tagNot?: string[]
       }) => {
     try {
       setPhotos([])
@@ -111,7 +124,9 @@ const usePhotoListModel = () => {
         maxWidth,
         maxHeight,
         dbTag,
-        dbTagNot
+        dbTagNot,
+        tag,
+        tagNot,
       });
       if (response.success) {
         const youPhotoConfig = await getYouPhotoConfig()
@@ -179,6 +194,26 @@ const usePhotoListModel = () => {
       return photo
     }))
   }
+  const runImageTagger = async (id: number) => {
+    const response = await imageTagger({id: id})
+    if (!response.success) {
+      message.error(response.err)
+      return
+    }
+    const imageResponse = await getImage({id: id})
+    if (!imageResponse.success) {
+      message.error(imageResponse.err)
+      return
+    }
+
+    message.success("tag success")
+    setPhotos(photos.map(photo => {
+      if (photo.id === id) {
+        photo.tag = imageResponse.data!.tag
+      }
+      return photo
+    }))
+  }
   return {
     photos,
     loading,
@@ -198,7 +233,8 @@ const usePhotoListModel = () => {
     infoMode,
     initModel,
     libraryList,
-    RunDeepdanbooruAnalyze
+    RunDeepdanbooruAnalyze,
+    runImageTagger
   };
 };
 export default usePhotoListModel;

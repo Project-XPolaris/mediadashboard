@@ -20,7 +20,9 @@ export const fetchImageList = async (param: {
   maxWidth?: number
   maxHeight?: number,
   dbTag?: string[]
-  dbTagNot?: string[]
+  dbTagNot?: string[],
+  tag?: string[],
+  tagNot?: string[],
 } = {
   page: 1,
   pageSize: 20,
@@ -56,5 +58,33 @@ export const uploadImageWithBase64 = async (param: { base64: string, filename: s
   return youPhotoRequest<BaseResponse<undefined>>("/image/base64", {
     method: "POST",
     data: param
+  });
+}
+
+export const imageTagger = async (param: { id: number }) => {
+  return youPhotoRequest<BaseResponse<YouPhotoAPI.DeepdanbooruResult[]>>(`/image/${param.id}/tagger`, {
+    method: "GET",
+  });
+}
+
+export const getImage = async (param: { id: number }) => {
+  return youPhotoRequest<BaseResponse<YouPhotoAPI.Photo>>(`/image/${param.id}`, {
+    method: "GET",
+  });
+}
+
+export const fetchTagList = async (
+  params: {
+    page?: number,
+    pageSize?: number,
+    nameSearch?: string,
+  } = {
+    page: 1,
+    pageSize: 20,
+  }
+) => {
+  return youPhotoRequest<BaseResponse<YouPhotoAPI.ImageTag>>(`/tags`, {
+    method: "GET",
+    params
   });
 }

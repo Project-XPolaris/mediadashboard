@@ -36,7 +36,7 @@ const ImageListPage = () => {
   const onDownload = (photo: PhotoItem) => {
     const fileName = photo.name;
     const el = document.createElement("a");
-    el.setAttribute("href", photo.rawUrl);
+    el.setAttribute("href", photo.rawUrl + "&download=1");
     el.setAttribute("download", fileName);
     document.body.appendChild(el);
     el.click();
@@ -71,7 +71,7 @@ const ImageListPage = () => {
             selectable: true,
             selectedKeys: getViewSeleKeys(),
             items: [
-              ...Array.from(Array(6).keys()).filter((x) => 24 % (x + 1) === 0).map((i) => {
+              ...Array.from(Array(12).keys()).filter((x) => 24 % (x + 1) === 0).map((i) => {
                 return {
                   key: `col.${i + 1}`,
                   label: `${i + 1} per col`,
@@ -176,6 +176,7 @@ const ImageListPage = () => {
           onClose={() => setDetailImage(undefined)}
           image={detailImage}
           onRunDeepdanbooru={model.RunDeepdanbooruAnalyze}
+          onRunImageTagger={model.runImageTagger}
         />
       }
       <Spin spinning={model.loading}>
@@ -311,7 +312,6 @@ const ImageListPage = () => {
                             </div>
                           )
                         }
-
                       </Card>
                     </Dropdown>
                   </Col>
@@ -344,10 +344,7 @@ const ImageListPage = () => {
           </Col>
         </Row>
       </div>
-
-
     </PageContainer>
-
   );
 };
 export default ImageListPage;
