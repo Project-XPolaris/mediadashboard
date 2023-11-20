@@ -328,6 +328,15 @@ declare namespace YouPhotoAPI {
     createAt: string;
     updateAt: string;
   }
+
+  export type ServiceState = {
+    deepdanbooruEnable: boolean
+    imageClassificationEnable: boolean
+    imageTaggerEnable: boolean
+    nsfwEnable: boolean
+    sdwEnable: boolean
+  }
+
 }
 
 

@@ -75,19 +75,19 @@ export default [
     routes: [
       {
         access: 'youphoto',
-        path: '/youphoto/library/list',
+        path: 'library/list',
         name: 'Libraries',
         component: './YouPhoto/Library/List',
       },
       {
         access: 'youphoto',
-        path: '/youphoto/photo/list',
+        path: 'photo/list',
         name: 'Photos',
         component: './YouPhoto/Photo/List',
       },
       {
         access: 'youphoto',
-        path: '/youphoto/lora/list',
+        path: 'lora/list',
         name: 'Lora Config',
         component: './YouPhoto/Lora/List',
       },

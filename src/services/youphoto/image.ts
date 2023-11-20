@@ -88,3 +88,10 @@ export const fetchTagList = async (
     params
   });
 }
+
+
+export const fetchTaggerModelList = async () => {
+  return youPhotoRequest<BaseResponse<string[]>>("/tagger/models", {
+    method: "GET",
+  });
+}

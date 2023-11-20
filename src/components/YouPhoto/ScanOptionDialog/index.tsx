@@ -1,6 +1,8 @@
 import {Form} from "antd";
-import {ModalForm, ProFormGroup, ProFormSwitch} from "@ant-design/pro-components";
-import React from "react";
+import {ModalForm, ProFormGroup, ProFormSelect, ProFormSwitch} from "@ant-design/pro-components";
+import React, {useEffect} from "react";
+import {fetchTaggerModelList} from "@/services/youphoto/image";
+import {fetchServiceState} from "@/services/youphoto/server";
 
 export type ScanOptionFormValues = {
   enableDomainColor: boolean
@@ -13,6 +15,7 @@ export type ScanOptionFormValues = {
   forceDeepdanbooruCheck: boolean
   enableTagger: boolean
   forceTagger: boolean
+  taggerModel?: string
 }
 export type ScanOptionDialogProps = {
   trigger: React.ReactElement
@@ -20,6 +23,27 @@ export type ScanOptionDialogProps = {
 }
 const ScanOptionDialog = ({trigger, onOk}: ScanOptionDialogProps) => {
   const [form] = Form.useForm<ScanOptionFormValues>();
+  const [taggerModelList, setTaggerModelList] = React.useState<string[]>([])
+  const [serviceState, setServiceState] = React.useState<YouPhotoAPI.ServiceState | undefined>()
+  const loadTaggerOption = async () => {
+    const resp = await fetchTaggerModelList()
+    if (resp.data) {
+      setTaggerModelList(resp.data)
+      if (resp.data.length > 0) {
+        form.setFieldsValue({taggerModel: resp.data[0]})
+      }
+    }
+  }
+  const loadServiceState = async () => {
+    const resp = await fetchServiceState()
+    if (resp.data) {
+      setServiceState(resp.data)
+    }
+  }
+  useEffect(() => {
+    loadTaggerOption()
+    loadServiceState()
+  }, [])
   return (
     <ModalForm<ScanOptionFormValues>
       title="Scan option"
@@ -31,15 +55,15 @@ const ScanOptionDialog = ({trigger, onOk}: ScanOptionDialogProps) => {
         return true;
       }}
       initialValues={{
-        enableDomainColor: true,
+        enableDomainColor: false,
         forceRefreshDomainColor: false,
-        enableImageClassification: true,
+        enableImageClassification: false,
         forceImageClassification: false,
-        enableNsfwCheck: true,
+        enableNsfwCheck: false,
         forceNsfwCheck: false,
-        enableDeepdanbooruCheck: true,
+        enableDeepdanbooruCheck: false,
         forceDeepdanbooruCheck: false,
-        enableTagger: true,
+        enableTagger: false,
         forceTagger: false,
       }}
     >
@@ -47,23 +71,49 @@ const ScanOptionDialog = ({trigger, onOk}: ScanOptionDialogProps) => {
         <ProFormSwitch name={"enableDomainColor"} label='Enable' colSize={1}/>
         <ProFormSwitch name={"forceRefreshDomainColor"} label='Force'/>
       </ProFormGroup>
-      <ProFormGroup title={"Image Classification"}>
-        <ProFormSwitch name={"enableImageClassification"} label='Enable'/>
-        <ProFormSwitch name={"forceImageClassification"} label='Force'/>
-      </ProFormGroup>
-      <ProFormGroup title={"NSFW"}>
-        <ProFormSwitch name={"enableNsfwCheck"} label='Enable'/>
+      {
+        serviceState?.imageClassificationEnable && (
+          <ProFormGroup title={"Image Classification"}>
+            <ProFormSwitch name={"enableImageClassification"} label='Enable'/>
+            <ProFormSwitch name={"forceImageClassification"} label='Force'/>
+          </ProFormGroup>
+        )
+      }
 
-        <ProFormSwitch name={"forceNsfwCheck"} label='Force'/>
-      </ProFormGroup>
-      <ProFormGroup title={"Deepdanbooru"}>
-        <ProFormSwitch name={"enableDeepdanbooruCheck"} label='Enable'/>
-        <ProFormSwitch name={"forceDeepdanbooruCheck"} label='Force'/>
-      </ProFormGroup>
-      <ProFormGroup title={"Tagger"}>
-        <ProFormSwitch name={"enableTagger"} label='Enable'/>
-        <ProFormSwitch name={"forceTagger"} label='Force'/>
-      </ProFormGroup>
+      {
+        serviceState?.nsfwEnable && (
+          <ProFormGroup title={"NSFW"}>
+            <ProFormSwitch name={"enableNsfwCheck"} label='Enable'/>
+
+            <ProFormSwitch name={"forceNsfwCheck"} label='Force'/>
+          </ProFormGroup>
+        )
+      }
+      {
+        serviceState?.deepdanbooruEnable && (
+          <ProFormGroup title={"Deepdanbooru"}>
+            <ProFormSwitch name={"enableDeepdanbooruCheck"} label='Enable'/>
+            <ProFormSwitch name={"forceDeepdanbooruCheck"} label='Force'/>
+          </ProFormGroup>
+        )
+      }
+      {
+        serviceState?.imageTaggerEnable && (
+          <ProFormGroup title={"Tagger"}>
+            <ProFormSwitch name={"enableTagger"} label='Enable'/>
+            <ProFormSwitch name={"forceTagger"} label='Force'/>
+            <ProFormSelect
+              width={"md"}
+              name={"taggerModel"}
+              label={"Model"}
+              options={taggerModelList.map((model) => {
+                return {label: model, value: model}
+              })}
+            />
+          </ProFormGroup>
+        )
+      }
+
     </ModalForm>
   )
 }
