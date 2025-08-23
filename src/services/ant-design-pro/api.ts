@@ -1,6 +1,5 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from '@umijs/max';
 import { mediaDashboardRequest } from './client';
 
 /** 获取当前的用户 GET /api/currentUser */
@@ -87,6 +86,13 @@ export async function removeRule(options?: { [key: string]: any }) {
 
 export async function getProxyList(options?: { [key: string]: any }) {
   return mediaDashboardRequest<API.ProxyList>('/api/service/list', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+export async function getProxyDetail(name: string, options?: { [key: string]: any }) {
+  return mediaDashboardRequest<API.RequestWrapper<API.ProxyItem>>(`/api/service/${name}`, {
     method: 'GET',
     ...(options || {}),
   });

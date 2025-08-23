@@ -100,9 +100,13 @@ declare namespace API {
     type?: NoticeIconItemType;
   };
   type ProxyItem = {
-    target: string;
+    target?: string;
     prefix: string;
-    name: "photo" | "video" | "music" | "comic" ;
+    name: string;
+    useNacos?: boolean;
+    serviceName?: string;
+    group?: string;
+    scheme?: string;
   };
   
   type ProxyList = RequestWrapper<ProxyItem[]>;
