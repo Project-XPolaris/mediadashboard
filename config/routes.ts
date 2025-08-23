@@ -74,24 +74,7 @@ export default [
       },
     ],
   },
-  {
-    path: '/system',
-    name: 'System',
-    icon: 'table',
-    routes: [
-      {
-        path: '/system/service',
-        name: '服务',
-        component: './System/Service/List',
-      },
-      {
-        path: '/system/service/:name',
-        name: '服务详情',
-        hideInMenu: true,
-        component: './System/Service/Detail',
-      },
-    ],
-  },
+  
   {
     path: '/youphoto',
     name: 'YouPhoto',
@@ -203,6 +186,24 @@ export default [
         path: '/youcomic/user/list',
         name: 'Users',
         component: './YouComic/User/List',
+      },
+    ],
+  },
+  {
+    path: '/system',
+    name: 'System',
+    icon: 'table',
+    routes: [
+      {
+        path: '/system/service',
+        name: '服务',
+        component: './System/Service/List',
+      },
+      {
+        path: '/system/service/:name',
+        name: '服务详情',
+        hideInMenu: true,
+        component: './System/Service/Detail',
       },
     ],
   },
