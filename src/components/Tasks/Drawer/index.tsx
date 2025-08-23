@@ -17,7 +17,7 @@ import YouComicMoveBookItem from "@/components/Tasks/Drawer/Items/YouComicMoveBo
 import YouComicWriteMetaTaskItem from "@/components/Tasks/Drawer/Items/YouComicWriteMetaTaskItem";
 import YouComicRemoveEmptyTaskItem from "@/components/Tasks/Drawer/Items/YouComicRemoveEmptyTaskItem";
 import TaskViewer from "@/components/TaskViewer";
-import {useState} from "react";
+import {useState, Fragment} from "react";
 import YouPhotoLoraTrainTaskItem from "@/components/Tasks/Drawer/Items/YouPhotoLoraTrainTaskItem";
 
 export type  TaskDrawerProps = {
@@ -101,7 +101,7 @@ const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
       }
       {
         model.taskList()?.map(it => {
-          return renderItem(it)
+          return <Fragment key={it.id}>{renderItem(it)}</Fragment>
         })
       }
     </Drawer>

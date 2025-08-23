@@ -1,8 +1,6 @@
 import {useState} from "react";
 import {DataPagination} from "@/utils/page";
 import {fetchVideoList, updateVideo} from "@/services/youvideo/video";
-import {YouVideoConfig} from "@/models/appsModel";
-import {getYouVideoConfig} from "@/utils/config";
 import {addVideoToEntity, newEntity} from "@/services/youvideo/entity";
 import {fetchLibraryList, Library} from "@/services/youvideo/library";
 import {message} from "antd";
@@ -67,16 +65,17 @@ const videoListModel = () => {
       message.error("video list is null")
       return
     }
+
     if (listWrap.result) {
-      const config: YouVideoConfig | null = getYouVideoConfig()
-      if (config === null) {
-        return
-      }
       const newList = listWrap.result
       newList.forEach((video) => {
+        // 添加 token
+        const token = localStorage.getItem('token')
+        const tokenParam = token ? `?token=${token}` : ''
+        
         if (video.files) {
           video.files.forEach((file) => {
-            file.cover = config.baseUrl + file.cover
+            file.cover = "/api/video" + file.cover + tokenParam
           })
         }
       })
@@ -134,7 +133,7 @@ const videoListModel = () => {
       const regex = new RegExp(regexString)
       const match = regex.exec(video.name)
       if (match && match.groups) {
-        const result = {}
+        const result: Record<string, { value: string; apply: boolean }> = {}
         for (const key in match.groups) {
           if (Object.prototype.hasOwnProperty.call(match.groups, key)) {
             const element = match.groups[key];

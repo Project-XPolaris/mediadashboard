@@ -1,6 +1,5 @@
 import {useState} from "react";
 import {fetchMusicList, updateMusic, uploadMusicCover} from "@/services/youmusic/music";
-import {getYouMusicConfig} from "@/utils/config";
 import {DataPagination} from "@/utils/page";
 import {MusicEditInitValues, MusicEditValues} from "@/components/YouMusic/MusicEditor";
 import {updateMusicTags} from "@/services/youmusic/tag";
@@ -52,14 +51,12 @@ const musicListModel = () => {
       withTag:"1"
     })
     if (response?.data) {
-      const config = getYouMusicConfig()
-      if (!config) {
-        return
-      }
       const newList = response.data
+      const token = localStorage.getItem("token")
       newList.forEach((music) => {
         if (music.album?.cover) {
-          music.album.cover = config.baseUrl + music.album.cover
+          const baseUrl = "/api/music" + music.album.cover
+          music.album.cover = token ? `${baseUrl}?token=${token}` : baseUrl
         }
       })
       setMusicList(newList)

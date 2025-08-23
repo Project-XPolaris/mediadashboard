@@ -54,7 +54,7 @@ const MatchTagDialog = ({
   const matchText = useDebounce(value);
 
   const pickUpWithType = (type: string, tags: YouComicAPI.MatchTag[]): YouComicAPI.MatchTag | undefined => {
-    let tag = tags.find(it => it.type === type && it.source === 'pattern');
+    let tag = tags.find(it => it.type === type && it.source === 'ai');
     if (tag) {
       return tag;
     }
@@ -309,8 +309,29 @@ const MatchTagDialog = ({
       </div>
       <div className={style.root}>
         <div className={style.left}>
-          <Tabs defaultActiveKey="1">
-            <TabPane tab="匹配" key="1">
+            <Tabs defaultActiveKey="1">
+              <TabPane tab="AI" key="1">
+                <List
+                  className={style.list}
+                  dataSource={matchTags.filter(
+                    it => it.source === 'ai',
+                  )}
+                  renderItem={item => (
+                    <List.Item>
+                      <Checkbox
+                        disabled={getCheckboxDisable(item)}
+                        className={style.checkbox}
+                        checked={Boolean(selectIds.find(it => it === item.id))}
+                        onChange={e => {
+                          onCheckChange(item.id, e.target.checked);
+                        }}
+                      />
+                      <List.Item.Meta title={item.name} description={renderDesc(item)} />
+                    </List.Item>
+                  )}
+                />
+              </TabPane>
+            <TabPane tab="匹配" key="2">
               <List
                 className={style.list}
                 dataSource={matchTags.filter(
@@ -331,7 +352,7 @@ const MatchTagDialog = ({
                 )}
               />
             </TabPane>
-            <TabPane tab="潜在" key="2">
+            <TabPane tab="潜在" key="3">
               <List
                 className={style.list}
                 dataSource={matchTags.filter(it => it.source === 'raw')}
@@ -350,7 +371,7 @@ const MatchTagDialog = ({
                 )}
               />
             </TabPane>
-            <TabPane tab="自定义" key="3">
+            <TabPane tab="自定义" key="4">
               <List
                 className={style.list}
                 dataSource={matchTags.filter(it => it.source === 'custom')}
@@ -381,7 +402,7 @@ const MatchTagDialog = ({
                 添加
               </Button>
             </TabPane>
-            <TabPane tab="文本替换" key="4">
+            <TabPane tab="文本替换" key="5">
               <List
                 className={style.list}
                 dataSource={matchTags.filter(it => it.source === 'raw')}

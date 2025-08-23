@@ -1,7 +1,6 @@
 import {useState} from "react";
 import {DataPagination} from "@/utils/page";
 import {fetchAlbumList} from "@/services/youmusic/album";
-import {getYouMusicConfig} from "@/utils/config";
 
 const albumListModel = () => {
   const [albumList, setAlbumList] = useState<YouMusicAPI.Album[]>([]);
@@ -14,13 +13,11 @@ const albumListModel = () => {
     const response = await fetchAlbumList({page: page.page, pageSize: page.pageSize})
 
     if (response?.data) {
-      const config = getYouMusicConfig()
-      if (!config) {
-        return
-      }
+      const token = localStorage.getItem("token")
       const newList = response.data
       newList.forEach((album) => {
-        album.cover = config.baseUrl + album.cover
+        const baseUrl = "/api/music" + album.cover
+        album.cover = token ? `${baseUrl}?token=${token}` : baseUrl
       })
       setAlbumList(newList)
       setPagination({

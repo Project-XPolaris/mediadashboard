@@ -54,6 +54,13 @@ export default [
       },
       {
         access: 'youvideo',
+        path: '/youvideo/video/detail',
+        name: 'Video detail',
+        hideInMenu: true,
+        component: './YouVideo/Video/Detail',
+      },
+      {
+        access: 'youvideo',
         path: '/youvideo/Entity/list',
         name: 'Entities',
         component: './YouVideo/Entity/List',
@@ -85,12 +92,12 @@ export default [
         name: 'Photos',
         component: './YouPhoto/Photo/List',
       },
-      {
-        access: 'youphoto',
-        path: 'lora/list',
-        name: 'Lora Config',
-        component: './YouPhoto/Lora/List',
-      },
+      // {
+      //   access: 'youphoto',
+      //   path: 'lora/list',
+      //   name: 'Lora Config',
+      //   component: './YouPhoto/Lora/List',
+      // },
     ],
   },
   {
@@ -140,16 +147,39 @@ export default [
       },
       {
         access: 'youcomic',
+        path: '/youcomic/book/:id/*',
+        name: 'Books',
+        component: './YouComic/Book/Detail',
+        hideInMenu: true,
+      },
+
+      {
+        access: 'youcomic',
         path: '/youcomic/library/list',
         name: 'Libraries',
         component: './YouComic/Library/List',
       },
       {
+        path: '/youcomic/tag',
+        name: 'Tag',
+        icon: 'book',
         access: 'youcomic',
-        path: '/youcomic/tag/list',
-        name: 'Tags',
-        component: './YouComic/Tag/List',
+        routes: [
+          {
+            access: 'youcomic',
+            path: '/youcomic/tag/list',
+            name: 'List',
+            component: './YouComic/Tag/List',
+          },
+          {
+            access: 'youcomic',
+            path: '/youcomic/tag/meta',
+            name: 'Meta',
+            component: './YouComic/Tag/Meta',
+          }
+        ]
       },
+
       {
         access: 'youcomic',
         path: '/youcomic/user/list',

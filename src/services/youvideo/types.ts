@@ -9,6 +9,9 @@ declare namespace YouVideoAPI {
     files: File[];
     order?: number;
     ep?: string;
+    entityId?: number;
+    release?: string;
+    infos?: { id: number; key: string; value: string }[];
 
   }
 
@@ -42,5 +45,16 @@ declare namespace YouVideoAPI {
     coverWidth: number;
     coverHeight: number;
     libraryId: number;
+    release?: string;
+    infos?: {
+      id: number;
+      key: string;
+      value: string;
+    }[];
+    tags?: {
+      name: string;
+      value: string;
+    }[];
+    template?: string;
   }
 }

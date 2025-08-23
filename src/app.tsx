@@ -7,10 +7,10 @@ import type { RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
+import { checkToken, getProxyList } from './services/ant-design-pro/api';
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
-
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
@@ -19,8 +19,13 @@ export async function getInitialState(): Promise<{
   currentUser?: API.CurrentUser;
   loading?: boolean;
   fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  proxyList?: Array<API.ProxyItem>;
 }> {
+  
   const fetchUserInfo = async () => {
+    // 获取代理列表
+    const proxyList = await getProxyList();
+    const access = proxyList.data?.map((item) => item.name);
     return {
       name: 'Serati Ma',
       avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
@@ -58,7 +63,7 @@ export async function getInitialState(): Promise<{
       notifyCount: 12,
       unreadCount: 11,
       country: 'China',
-      access: ['admin','youvideo'],
+      access: ['admin',...access],
       geographic: {
         province: {
           label: '浙江省',
@@ -73,13 +78,37 @@ export async function getInitialState(): Promise<{
       phone: '0752-268888888',
     }
   };
+  const current = history.location;
+  const currentPath = current?.pathname || '/';
+  const currentSearch = current?.search || '';
+  const gotoLogin = () => {
+    if (currentPath !== loginPath) {
+      history.push(`${loginPath}?redirect=${encodeURIComponent(currentPath + currentSearch)}`);
+    }
+  };
+  // 如果没有 token ，跳转登录
+  if (!localStorage.getItem('token')) {
+    gotoLogin();
+  } else {
+    // 检查 token 是否有效
+    try {
+      const checkTokenResult = await checkToken();
+      if (!checkTokenResult.data?.isValid) {
+        gotoLogin();
+      }
+    } catch (e) {
+      gotoLogin();
+    }
+  }
   // 如果不是登录页面，执行
-  if (window.location.pathname !== loginPath) {
+  if ((history.location?.pathname || '/') !== loginPath) {
     const currentUser = await fetchUserInfo();
+    const proxyList = await getProxyList();
     return {
       fetchUserInfo,
       currentUser,
       settings: defaultSettings as any,
+      proxyList: proxyList.data,
     };
   }
   return {
@@ -87,6 +116,7 @@ export async function getInitialState(): Promise<{
     settings: defaultSettings as any,
   };
 }
+
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {

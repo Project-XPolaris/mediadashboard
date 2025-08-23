@@ -6,13 +6,10 @@ import {Library} from "@/services/youphoto/library";
 import {useState} from "react";
 import NewYouPhotoLibraryDialog from "@/components/YouPhoto/NewLibraryDialog";
 import ScanOptionDialog from "@/components/YouPhoto/ScanOptionDialog";
-import LoraConfigSelectDialogDialog from "@/components/YouPhoto/LoraConfigSelectDialog";
 
 const YouPhotoLibraryListPage = () => {
   const model = useModel('YouPhoto.libraryList')
   const [createLibraryDialogOpen, setCreateLibraryDialogOpen] = useState(false)
-  const [selectColorDialogOpen, setSelectColorDialogOpen] = useState(false)
-  const [contextLibrary, setContextLibrary] = useState<Library>()
   const columns: ColumnsType<Library> = [
     {
       title: 'id',
@@ -41,7 +38,6 @@ const YouPhotoLibraryListPage = () => {
                 <a>
                   Scan
                 </a>
-
               }
               onOk={(values) => model.scan(text, values)}/>
             <Divider type={"vertical"}/>
@@ -55,13 +51,6 @@ const YouPhotoLibraryListPage = () => {
                 Delete
               </a>
             </Popconfirm>
-            <Divider type={"vertical"}/>
-            <a onClick={() => {
-              setSelectColorDialogOpen(true)
-              setContextLibrary(record)
-            }}>
-              Lora Train
-            </a>
           </>
         )
       }
@@ -75,16 +64,6 @@ const YouPhotoLibraryListPage = () => {
         </Button>
       </>
     }>
-      <LoraConfigSelectDialogDialog
-        open={selectColorDialogOpen}
-        onOk={({id}) => {
-          if (contextLibrary) {
-            model.loraTrain(contextLibrary.id,id)
-            setSelectColorDialogOpen(false)
-          }
-        }}
-        onClose={() => setSelectColorDialogOpen(false)}
-      />
       <NewYouPhotoLibraryDialog
         onOk={async (name, isPrivate, path) => {
           await model.create({

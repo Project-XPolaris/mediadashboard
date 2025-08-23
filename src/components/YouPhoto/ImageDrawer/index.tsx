@@ -1,7 +1,6 @@
 import {Card, Col, Drawer, Image, Row, Spin} from "antd";
 import {useEffect, useState} from "react";
 import {fetchNearImageList} from "@/services/youphoto/image";
-import {getYouPhotoConfig} from "@/utils/config";
 import {DownloadOutlined} from "@ant-design/icons";
 import styles from "@/pages/YouPhoto/Photo/List/style.less";
 
@@ -21,10 +20,6 @@ const NearImageDrawer = ({open = false, sourceId, onClose}: ImageDrawerProps) =>
     if (!sourceId) {
       return
     }
-    const youPhotoConfig = await getYouPhotoConfig()
-    if (!youPhotoConfig) {
-      return
-    }
     setImages([])
     setLoading(true)
     const res = await fetchNearImageList({id: sourceId, maxDistance: 6})
@@ -32,8 +27,8 @@ const NearImageDrawer = ({open = false, sourceId, onClose}: ImageDrawerProps) =>
       setImages(res.data.map(photo => {
         return {
           ...photo,
-          thumbnailUrl: youPhotoConfig.baseUrl + `/image/${photo.image.id}/thumbnail?token=${youPhotoConfig.token}`,
-          rawUrl: youPhotoConfig.baseUrl + `/image/${photo.image.id}/raw?token=${youPhotoConfig.token}`
+          thumbnailUrl: "/api/photo" + `/image/${photo.image.id}/thumbnail`,
+          rawUrl: "/api/photo" + `/image/${photo.image.id}/raw`
         }
       }).sort((a, b) => {
         return a.avgDistance > b.avgDistance ? 1 : -1

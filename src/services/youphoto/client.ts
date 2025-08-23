@@ -1,5 +1,4 @@
 import {extend} from "umi-request";
-import {YouPhotoConfig} from "@/models/appsModel";
 
 export const youPhotoRequest = extend({
   timeout: 3000000,
@@ -8,17 +7,14 @@ export const youPhotoRequest = extend({
   }
 })
 youPhotoRequest.interceptors.request.use((url, options) => {
-  const youPhotoConfig: YouPhotoConfig = JSON.parse(localStorage.getItem('YouPhotoConfig') || '{}')
-  if (!youPhotoConfig.baseUrl) {
-    throw new Error("YouPhotoConfig is null")
-  }
-  if (youPhotoConfig.token) {
+  if (localStorage.getItem('token')) {
     options.headers = {
-      Authorization: `Bearer ${youPhotoConfig.token}`
+      Authorization: `Bearer ${localStorage.getItem('token')}`
     }
   }
+  // 添加代理前缀
   return {
-    url: youPhotoConfig.baseUrl + url,
+    url: '/api/photo' + url,
     options: options
   }
 },{global:false})

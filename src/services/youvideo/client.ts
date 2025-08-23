@@ -1,5 +1,4 @@
 import {extend} from "umi-request";
-import {YouVideoConfig} from "@/models/appsModel";
 
 
 export const youVideoRequest = extend({
@@ -9,17 +8,14 @@ export const youVideoRequest = extend({
   // }
 })
 youVideoRequest.interceptors.request.use((url, options) => {
-  const youvideoConfig: YouVideoConfig = JSON.parse(localStorage.getItem('YouVideoConfig') || '{}')
-  if (!youvideoConfig.baseUrl) {
-    throw new Error("YouVideoConfig is null")
-  }
-  if (youvideoConfig.token) {
+  if (localStorage.getItem('token')) {
     options.headers = {
-      Authorization: `Bearer ${youvideoConfig.token}`
+      Authorization: `Bearer ${localStorage.getItem('token')}`
     }
   }
+  // 添加代理前缀
   return {
-    url: youvideoConfig.baseUrl + url,
+    url: '/api/video' + url,
     options: options
   }
 },{global:false})

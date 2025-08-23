@@ -20,6 +20,14 @@ export const matchTagWithName = async (name: string): Promise<YouComicAPI.MatchT
   })
 }
 
+export const batchMatchTagWithName = async (texts: string[]): Promise<YouComicAPI.BatchMatchTag[]> => {
+  return youComicRequest.post(`/tags/batch-match`, {
+    data: {
+      texts: texts
+    }
+  })
+}
+
 export const newCleanEmptyTagTask = () => {
   return youComicRequest.post(`/tags/clean`)
 }

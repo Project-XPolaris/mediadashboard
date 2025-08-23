@@ -4,7 +4,7 @@ import {fetchYouPhotoTaskList} from "@/services/youphoto/task";
 import {fetchYouMusicTaskList} from "@/services/youmusic/task";
 import {fetchYouComicTaskList} from "@/services/youcomic/task";
 import {useState} from "react";
-import {getYouComicConfig, getYouMusicConfig, getYouPhotoConfig, getYouVideoConfig} from "@/utils/config";
+import { useModel } from "@umijs/max";
 
 export type TaskType =
   "YouVideo/ScanTask" |
@@ -35,20 +35,20 @@ export type TaskList = {
   YouPhoto: TaskItem[]
   YouMusic: TaskItem[]
 }
-export const YouVideoTaskTypeMapping = {
+export const YouVideoTaskTypeMapping: Record<string, string> = {
   'ScanLibrary': 'YouVideo/ScanTask',
   'SyncIndex': 'YouVideo/SyncIndexTask',
   'RemoveLibrary': 'YouVideo/DeleteTask',
   'Meta': 'YouVideo/MetaTask'
 }
-export const YouPhotoTaskTypeMapping = {
+export const YouPhotoTaskTypeMapping: Record<string, string> = {
   'RemoveLibrary': 'YouPhoto/DeleteTask',
   'ScanLibrary': 'YouPhoto/ScanTask',
 }
-export const YouMusicTaskTypeMapping = {
+export const YouMusicTaskTypeMapping: Record<string, string> = {
   'ScanLibrary': 'YouMusic/ScanTask',
 }
-export const YouComicTaskTypeMapping = {
+export const YouComicTaskTypeMapping: Record<string, string> = {
   'ScanLibrary': 'YouComic/ScanTask',
   'MatchTag': 'YouComic/MatchTagTask',
   'RemoveLibrary': 'YouComic/DeleteTask',
@@ -58,6 +58,8 @@ export const YouComicTaskTypeMapping = {
   'RemoveEmptyTag': 'YouComic/RemoveEmptyTagTask',
 }
 const useTaskModel = () => {
+  const { initialState } = useModel('@@initialState');
+  const proxyList = initialState?.proxyList;
   const [tasks, setTasks] = useState<TaskList>({
     YouComic: [],
     YouVideo: [],
@@ -65,7 +67,10 @@ const useTaskModel = () => {
     YouMusic: [],
   })
   const fetchYouComicTasks = async () => {
-    if (!getYouComicConfig()) {
+    if (!proxyList) {
+      return
+    }
+    if (!proxyList.find(item => item.name === 'comic')) {
       return
     }
     let list: TaskItem[] = []
@@ -89,7 +94,10 @@ const useTaskModel = () => {
     })
   }
   const fetchYouVideoTasks = async () => {
-    if (!getYouVideoConfig()) {
+    if (!proxyList) {
+      return
+    }
+    if (!proxyList.find(item => item.name === 'video')) {
       return
     }
     let list: TaskItem[] = []
@@ -113,7 +121,10 @@ const useTaskModel = () => {
     })
   }
   const fetchYouPhotoTasks = async () => {
-    if (!getYouPhotoConfig()) {
+    if (!proxyList) {
+      return
+    }
+    if (!proxyList.find(item => item.name === 'photo')) {
       return
     }
     let list: TaskItem[] = []
@@ -137,7 +148,10 @@ const useTaskModel = () => {
     })
   }
   const fetchYouMusicTasks = async () => {
-    if (!getYouMusicConfig()) {
+    if (!proxyList) {
+      return
+    }
+    if (!proxyList.find(item => item.name === 'music')) {
       return
     }
     let list: TaskItem[] = []

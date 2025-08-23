@@ -2,7 +2,6 @@ import {useState} from "react";
 import {message} from "antd";
 import {deepdanbooruAnalyze, fetchImageList, getImage, imageTagger} from "@/services/youphoto/image";
 import {DataPagination} from "@/utils/page";
-import {getYouPhotoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youphoto/library";
 import {useLocalStorageState} from "ahooks";
 
@@ -129,15 +128,15 @@ const usePhotoListModel = () => {
         tagNot,
       });
       if (response.success) {
-        const youPhotoConfig = await getYouPhotoConfig()
-        if (!youPhotoConfig) {
-          throw new Error("youPhotoConfig is null")
+        const token = localStorage.getItem("token")
+        if (!token) {
+          return
         }
         const photosData: PhotoItem[] = response.result.map(photo => {
           const item: PhotoItem = {
             ...photo,
-            thumbnailUrl: youPhotoConfig.baseUrl + `/image/${photo.id}/thumbnail?token=${youPhotoConfig.token}`,
-            rawUrl: youPhotoConfig.baseUrl + `/image/${photo.id}/raw?token=${youPhotoConfig.token}`,
+            thumbnailUrl:`/api/photo/image/${photo.id}/thumbnail?token=${token}`,
+            rawUrl: `/api/photo/image/${photo.id}/raw?token=${token}`,
             mostClassify: undefined
           }
           if (photo.classify && photo.classify.length > 0) {

@@ -1,8 +1,6 @@
 import {useState} from "react";
 import {DataPagination} from "@/utils/page";
 import {applyEntityInfoFromSource, batchEntity, fetchEntityList, updateEntity} from "@/services/youvideo/entity";
-import {YouVideoConfig} from "@/models/appsModel";
-import {getYouVideoConfig} from "@/utils/config";
 import {fetchLibraryList, Library} from "@/services/youvideo/library";
 import {getOrderQueryParam} from "@/utils/param";
 import {message} from "antd";
@@ -48,17 +46,15 @@ const entityListModel = () => {
       return
     }
     if (dataList.result) {
-      const config: YouVideoConfig | null = getYouVideoConfig()
-      if (config === null) {
-        return
-      }
-      const newList = dataList.result
-      newList.forEach((entity) => {
+      const newList = dataList.result.map((entity) => {
         if (entity.cover) {
-          entity.cover = config.baseUrl + entity.cover
+          const token = localStorage.getItem('token')
+          const tokenParam = token ? `?token=${token}` : ''
+          entity.cover = "/api/video" + entity.cover + tokenParam
         }
+        return entity
       })
-      setEntityList(dataList.result)
+      setEntityList(newList)
       setPagination({
         page: page.page,
         pageSize: page.pageSize,

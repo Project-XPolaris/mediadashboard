@@ -8,17 +8,12 @@ export const youMusicRequest = extend({
   }
 })
 youMusicRequest.interceptors.request.use((url, options) => {
-  const youMusicConfig: YouMusicConfig = JSON.parse(localStorage.getItem('YouMusicConfig') || '{}')
-  if (!youMusicConfig.baseUrl) {
-    throw new Error("YouMusicConfig is null")
-  }
-  if (youMusicConfig.token) {
-    options.headers = {
-      Authorization: `Bearer ${youMusicConfig.token}`
-    }
+  const token = localStorage.getItem('token')
+  options.headers = {
+    Authorization: `Bearer ${token}`
   }
   return {
-    url: youMusicConfig.baseUrl + url,
+    url: "/api/music" + url,
     options: options
   }
 },{global:false})

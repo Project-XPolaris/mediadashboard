@@ -1,10 +1,11 @@
 // @ts-ignore
 /* eslint-disable */
 import { request } from '@umijs/max';
+import { mediaDashboardRequest } from './client';
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser(options?: { [key: string]: any }) {
-  return request<{
+  return mediaDashboardRequest<{
     data: API.CurrentUser;
   }>('/api/currentUser', {
     method: 'GET',
@@ -14,7 +15,7 @@ export async function currentUser(options?: { [key: string]: any }) {
 
 /** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
+  return mediaDashboardRequest<Record<string, any>>('/api/login/outLogin', {
     method: 'POST',
     ...(options || {}),
   });
@@ -22,7 +23,7 @@ export async function outLogin(options?: { [key: string]: any }) {
 
 /** 登录接口 POST /api/login/account */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.LoginResult>('/api/login/account', {
+  return mediaDashboardRequest<API.LoginResult>('/api/oauth/youauth/password', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -34,7 +35,7 @@ export async function login(body: API.LoginParams, options?: { [key: string]: an
 
 /** 此处后端没有提供注释 GET /api/notices */
 export async function getNotices(options?: { [key: string]: any }) {
-  return request<API.NoticeIconList>('/api/notices', {
+  return mediaDashboardRequest<API.NoticeIconList>('/api/notices', {
     method: 'GET',
     ...(options || {}),
   });
@@ -51,7 +52,7 @@ export async function rule(
   },
   options?: { [key: string]: any },
 ) {
-  return request<API.RuleList>('/api/rule', {
+  return mediaDashboardRequest<API.RuleList>('/api/rule', {
     method: 'GET',
     params: {
       ...params,
@@ -62,7 +63,7 @@ export async function rule(
 
 /** 新建规则 PUT /api/rule */
 export async function updateRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/rule', {
+  return mediaDashboardRequest<API.RuleListItem>('/api/rule', {
     method: 'PUT',
     ...(options || {}),
   });
@@ -70,7 +71,7 @@ export async function updateRule(options?: { [key: string]: any }) {
 
 /** 新建规则 POST /api/rule */
 export async function addRule(options?: { [key: string]: any }) {
-  return request<API.RuleListItem>('/api/rule', {
+  return mediaDashboardRequest<API.RuleListItem>('/api/rule', {
     method: 'POST',
     ...(options || {}),
   });
@@ -78,8 +79,22 @@ export async function addRule(options?: { [key: string]: any }) {
 
 /** 删除规则 DELETE /api/rule */
 export async function removeRule(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/rule', {
+  return mediaDashboardRequest<Record<string, any>>('/api/rule', {
     method: 'DELETE',
+    ...(options || {}),
+  });
+}
+
+export async function getProxyList(options?: { [key: string]: any }) {
+  return mediaDashboardRequest<API.ProxyList>('/api/service/list', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+export async function checkToken(options?: { [key: string]: any }) {
+  return mediaDashboardRequest<API.CheckToken>('/api/oauth/check', {
+    method: 'GET',
     ...(options || {}),
   });
 }

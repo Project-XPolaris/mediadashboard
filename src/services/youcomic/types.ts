@@ -40,9 +40,13 @@ declare namespace YouComicAPI {
     id: string
     name: string
     type: string
-    source: 'raw' | 'pattern' | 'database' | 'custom'
+    source: 'raw' | 'pattern' | 'database' | 'custom' | 'ai'
   }
 
+  export type BatchMatchTag = {
+    text: string;
+    result: MatchTag[];
+  }
   export type ScanLibraryOutput = {
     targetDir: string;
     libraryId: number;
@@ -97,4 +101,12 @@ declare namespace YouComicAPI {
     | MoveBookTaskOutput
     | WriteMetaTaskOutput
     | RemoveEmptyTaskOutput
+
+  export type Page = {
+    id: number;
+    created_at: string;
+    order: number;
+    book_id: number;
+    path: string;
+  }
 }

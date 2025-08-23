@@ -9,6 +9,7 @@ import BatchMatchTagDrawer, {UpdateValue} from "@/components/YouComic/BatchMatch
 import MatchTagDialog from "@/components/YouComic/MatchTagDialog";
 import {LibraryPickUpDialog} from "@/components/YouComic/LibraryPickUpDialog";
 import {MenuClickEventHandler} from "rc-menu/es/interface";
+import { history } from '@umijs/max';
 
 const BookListPage = () => {
   const model = useModel('YouComic.bookList')
@@ -31,7 +32,7 @@ const BookListPage = () => {
     if (model.selectedBooks.length > 0) {
       onBookSelect(book);
     } else {
-      // TODO to detail page
+      history.push(`/youcomic/book/${book.id}/base`)
     }
   };
   const onTagSearch = async (key: string, type?: string) => {

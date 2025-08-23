@@ -8,6 +8,7 @@ import {DeleteOutlined, DownOutlined, VideoCameraOutlined} from "@ant-design/ico
 import {Button, Divider, Dropdown, Menu, Popconfirm, Select, Space, theme, Typography} from "antd";
 import {ItemType} from "antd/es/menu/hooks/useItems";
 import EntityDrawer from "@/components/EntityDrawer";
+import {history} from "umi";
 
 type EntityDrawerState = {
   id?: number
@@ -65,6 +66,7 @@ const EntityListPage = () => {
               editable={{
                 onChange: (value) => model.setEditFieldValue(record.id, "name", value)
               }}
+              onClick={() => history.push(`/youvideo/Entity/detail?id=${record.id}`)}
             >
               {name}
             </Typography.Text>

@@ -4,7 +4,7 @@ import {Button, Card, Dropdown, Menu, message, Table, Tag} from "antd";
 import LinkDialog from "@/components/LinkDialog";
 import useAccountManager, {Account} from "@/hooks/account";
 import {ColumnsType} from "antd/es/table";
-import {getYouComicConfig, getYouMusicConfig, getYouPhotoConfig, getYouVideoConfig} from "@/utils/config";
+import {getYouVideoConfig} from "@/utils/config";
 import styles from './style.less'
 const AppsPage: React.FC = () => {
   // const appsModel = useModel('appsModel')
@@ -18,24 +18,6 @@ const AppsPage: React.FC = () => {
           return false
         }
         return youvideoConfig.token === account.token
-      case 'YouMusic':
-        const youmusicConfig = getYouMusicConfig()
-        if (!youmusicConfig) {
-          return false
-        }
-        return youmusicConfig.token === account.token
-      case 'YouPhoto':
-        const youphotoConfig = getYouPhotoConfig()
-        if (!youphotoConfig) {
-          return false
-        }
-        return youphotoConfig.token === account.token
-      case 'YouComic':
-        const youComicConfig = getYouComicConfig()
-        if (!youComicConfig) {
-          return false
-        }
-        return youComicConfig.token === account.token
     }
     return false
   }

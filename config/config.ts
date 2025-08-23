@@ -14,6 +14,8 @@ export default defineConfig({
    * @doc https://umijs.org/docs/api/config#hash
    */
   hash: true,
+  // 使用 hash 路由，避免后端直链 404
+  history: { type: 'hash' },
 
   /**
    * @name 兼容性设置

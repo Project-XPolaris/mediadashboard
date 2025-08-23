@@ -27,3 +27,15 @@ export const updateVideo = async (id: number, data: updateVideoData): Promise<Ba
     data
   })
 }
+
+export const fetchVideo = async (id: number): Promise<BaseResponse<YouVideoAPI.Video>> => {
+  return youVideoRequest(`/video/${id}`, {
+    method: "GET",
+  })
+}
+
+export const refreshVideo = async (id: number): Promise<BaseResponse<YouVideoAPI.Video>> => {
+  return youVideoRequest(`/video/${id}/refresh`, {
+    method: "POST",
+  })
+}

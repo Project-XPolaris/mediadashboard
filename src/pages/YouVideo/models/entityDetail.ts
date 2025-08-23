@@ -17,6 +17,11 @@ const entityDetailModel = () => {
       message.error("entity is null")
       return
     }
+    if (entity.cover) {
+      const token = localStorage.getItem('token')
+      const tokenParam = token ? `?token=${token}` : ''
+      entity.cover = "/api/video" + entity.cover + tokenParam
+    }
     setEntity(entity)
   }
   const getEntityName = () => {

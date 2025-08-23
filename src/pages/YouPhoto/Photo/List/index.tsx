@@ -174,7 +174,7 @@ const ImageListPage = () => {
         detailImage && <ImageDetailDrawer
           open={Boolean(detailImage)}
           onClose={() => setDetailImage(undefined)}
-          image={detailImage}
+          imageId={detailImage.id}
           onRunDeepdanbooru={model.RunDeepdanbooruAnalyze}
           onRunImageTagger={model.runImageTagger}
         />

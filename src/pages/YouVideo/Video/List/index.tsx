@@ -1,5 +1,5 @@
 import {LightFilter, PageContainer, ProColumns, ProFormSelect, ProTable} from "@ant-design/pro-components";
-import {useModel} from "@umijs/max";
+import {useModel, history} from "@umijs/max";
 import {useEffect, useState} from "react";
 import {VideoItem} from "@/pages/YouVideo/models/videoList";
 import styles from './style.less'
@@ -65,8 +65,7 @@ const VideoListPage = () => {
               {
                 isEdited && (<CloseOutlined size={12} onClick={() => model.resetEditItem(record.id, 'name')}/>)
               }
-
-
+              <a onClick={() => history.push(`/youvideo/video/detail?id=${record.id}`)}>Detail</a>
             </Space>
             {
               matchTitle && (
@@ -194,7 +193,7 @@ const VideoListPage = () => {
                     style={{width: 720}}
                     options={model.nameMatchRegex.map(it => ({label: it, value: it}))}
                     onSelect={(value) => {
-                      setSelectNameRegex(value)
+                      setSelectNameRegex(value as string)
                     }}
                     dropdownRender={(menu) => (
                       <>
@@ -300,7 +299,7 @@ const VideoListPage = () => {
                         dropdownMatchSelectWidth: false,
                         onChange: (value) => {
                           model.loadData({
-                            queryOrder: value
+                            queryOrder: value as string
                           })
                         }
                       }}

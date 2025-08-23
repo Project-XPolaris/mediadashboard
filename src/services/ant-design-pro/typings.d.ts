@@ -2,6 +2,10 @@
 /* eslint-disable */
 
 declare namespace API {
+  type RequestWrapper<T> = {
+    data: T;
+    success: boolean;
+  };
   type CurrentUser = {
     name?: string;
     avatar?: string;
@@ -23,11 +27,10 @@ declare namespace API {
     phone?: string;
   };
 
-  type LoginResult = {
-    status?: string;
-    type?: string;
-    currentAuthority?: string;
-  };
+  type LoginResult = RequestWrapper<{
+    accessToken: string;
+    username: string;
+  }>;
 
   type PageParams = {
     current?: number;
@@ -64,8 +67,6 @@ declare namespace API {
   type LoginParams = {
     username?: string;
     password?: string;
-    autoLogin?: boolean;
-    type?: string;
   };
 
   type ErrorResponse = {
@@ -98,4 +99,17 @@ declare namespace API {
     description?: string;
     type?: NoticeIconItemType;
   };
+  type ProxyItem = {
+    target: string;
+    prefix: string;
+    name: "photo" | "video" | "music" | "comic" ;
+  };
+  
+  type ProxyList = RequestWrapper<ProxyItem[]>;
+  type CheckToken = RequestWrapper<{
+    isValid: boolean;
+  }>;
 }
+
+
+

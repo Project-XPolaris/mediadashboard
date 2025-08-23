@@ -1,6 +1,5 @@
 import {useState} from "react";
 import {fetchAlbumById} from "@/services/youmusic/album";
-import {getYouMusicConfig} from "@/utils/config";
 
 const useAlbumDetailModel = () => {
   const [album, setAlbum] = useState<YouMusicAPI.Album | undefined>();
@@ -12,11 +11,7 @@ const useAlbumDetailModel = () => {
     if (!album) {
       return
     }
-    const config = getYouMusicConfig()
-    if (!config) {
-      return
-    }
-    return config.baseUrl + album.cover
+    return "/api/music" + album.cover
   }
   return {
     loadData, album, getAlbumCover
