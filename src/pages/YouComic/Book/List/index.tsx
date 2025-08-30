@@ -8,6 +8,7 @@ import BookFilterDrawer, {BookFilter} from "@/components/YouComic/BookFilterDraw
 import BatchMatchTagDrawer, {UpdateValue} from "@/components/YouComic/BatchMatchTagDrawer";
 import MatchTagDialog from "@/components/YouComic/MatchTagDialog";
 import {LibraryPickUpDialog} from "@/components/YouComic/LibraryPickUpDialog";
+import LLMBatchMatchTagModal from "@/components/YouComic/LLMBatchMatchTagModal";
 import {MenuClickEventHandler} from "rc-menu/es/interface";
 import { history } from '@umijs/max';
 
@@ -17,6 +18,7 @@ const BookListPage = () => {
   const [batchMatchTagDrawerOpen, setBatchMatchTagDrawerOpen] = useState(false)
   const [matchTagDialogOpen, setMatchTagDialogOpen] = useState(false)
   const [moveBookDialogOpen, setMoveBookDialogOpen] = useState(false)
+  const [llmBatchModalOpen, setLlmBatchModalOpen] = useState(false)
   useEffect(() => {
     model.loadData({})
   }, [])
@@ -65,6 +67,16 @@ const BookListPage = () => {
   const onBatchMatchOkHandler = (books: UpdateValue[]) => {
     model.updateList({books})
   }
+  const onLLMBatchMatchOk = (results: Array<{id: number, title: string, tags: YouComicAPI.MatchTag[]}>) => {
+    const updateValues: UpdateValue[] = results.map(result => ({
+      id: result.id,
+      title: result.title,
+      tags: result.tags.map(tag => ({name: tag.name, type: tag.type}))
+    }))
+    model.updateList({books: updateValues})
+    // 批量更新后清空选择
+    model.setSelectedBooks([])
+  }
   const onSelectAllBooks = () => {
     model.setSelectedBooks(model.books)
   };
@@ -96,6 +108,10 @@ const BookListPage = () => {
     {
       key: 'matchSelect',
       label: "Match select book"
+    },
+    {
+      key: 'llmBatchMatch',
+      label: "LLM Batch Match"
     },
     {
       type: 'divider',
@@ -139,6 +155,9 @@ const BookListPage = () => {
       case 'matchSelect':
         model.matchSelectBook();
         break;
+      case 'llmBatchMatch':
+        setLlmBatchModalOpen(true);
+        break;
 
     }
   }
@@ -175,6 +194,12 @@ const BookListPage = () => {
         onCancel={() => setMoveBookDialogOpen(false)}
         isOpen={moveBookDialogOpen}
         onOk={(id) => model.move({id})}
+      />
+      <LLMBatchMatchTagModal
+        visible={llmBatchModalOpen}
+        onClose={() => setLlmBatchModalOpen(false)}
+        books={model.selectedBooks}
+        onOk={onLLMBatchMatchOk}
       />
       <BatchMatchTagDrawer
         onClose={() => setBatchMatchTagDrawerOpen(false)}

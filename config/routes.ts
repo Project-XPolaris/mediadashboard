@@ -161,6 +161,12 @@ export default [
         component: './YouComic/Library/List',
       },
       {
+        access: 'youcomic',
+        path: '/youcomic/library/:id',
+        hideInMenu: true,
+        component: './YouComic/Library/Detail',
+      },
+      {
         path: '/youcomic/tag',
         name: 'Tag',
         icon: 'book',
@@ -186,6 +192,13 @@ export default [
         path: '/youcomic/user/list',
         name: 'Users',
         component: './YouComic/User/List',
+      },
+      {
+        access: 'youcomic',
+        path: '/youcomic/llm/config',
+        name: 'LLM配置',
+        icon: 'robot',
+        component: './YouComic/LLM',
       },
     ],
   },

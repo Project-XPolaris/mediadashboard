@@ -35,6 +35,19 @@ export const matchLibraryBooksTag = async (libraryId: number) => {
 export const deleteLibrary = async (id: number) => {
   return youComicRequest.delete(`/library/${id}`);
 }
+export const getLibrary = async (id: number) => {
+  return youComicRequest.get(`/library/${id}`)
+}
+export const getLibraryScanHistories = async (id: number, params?: { page?: number, page_size?: number }) => {
+  return youComicRequest.get(`/library/${id}/scan/histories`, { params })
+}
+export const batchDeleteLibraries = async (ids: number[]) => {
+  return youComicRequest.post(`/library/batch`, {
+    data: {
+      delete: ids
+    }
+  })
+}
 export const fetchDirInfo = async (path: string): Promise<FetchDirInfo> => {
   console.log(path);
   return youComicRequest<FetchDirInfo>("/explore/read", {
@@ -49,6 +62,11 @@ export const createLibrary = async (param: { name: string, path: string }) => {
   return youComicRequest<YouComicAPI.Library>("/libraries", {
     method: "POST",
     data: param
+  })
+}
+export const batchCreateLibraries = async (params: { libraries: { name: string, path: string }[], scan?: boolean }) => {
+  return youComicRequest.post("/libraries/batchCreate", {
+    data: params
   })
 }
 export const generateLibraryThumbnail = async (libraryId: number, force: boolean) => {

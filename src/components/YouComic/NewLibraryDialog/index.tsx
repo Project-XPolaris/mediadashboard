@@ -81,10 +81,12 @@ const NewYouComicLibraryDialog = (
             return (
               <List.Item
                 key={index}
+                onClick={() => explore.navigate(item.path)}
+                style={{ cursor: 'pointer' }}
               >
                 <List.Item.Meta
-                  avatar={<Avatar icon={<FolderOutlined/>}/>}
-                  title={<a href="#" onClick={() => explore.navigate(item.path)}>{item.name}</a>}
+                  avatar={<Avatar icon={<FolderOutlined/>}/>} 
+                  title={item.name}
                   description="Directory"
                 />
               </List.Item>

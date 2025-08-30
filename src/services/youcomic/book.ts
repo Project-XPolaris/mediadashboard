@@ -40,3 +40,46 @@ export const queryPages = ({book, page, pageSize, order}: { book: string | numbe
     }
   })
 }
+
+export type AnalyzeBookFolderParams = {
+  updateFields?: string[];
+}
+
+export type BookAnalysisResult = {
+  title: string;
+  author: string;
+  series: string;
+  tags: string[];
+  genre: string;
+  volume: string;
+  chapter: string;
+  language: string;
+  publisher: string;
+  year: string;
+  confidence: number;
+  reasoning: string;
+}
+
+export type MatchTagResult = {
+  id: string;
+  name: string;
+  type: string;
+  source: string;
+}
+
+export type AnalyzeBookFolderResponse = {
+  id: number;
+  folderName: string;
+  analysis?: BookAnalysisResult;
+  matchTags: MatchTagResult[];
+  success: boolean;
+  message: string;
+}
+
+export const analyzeBookFolder = async (id: number, params?: AnalyzeBookFolderParams): Promise<AnalyzeBookFolderResponse> => {
+  return youComicRequest.post(`/book/${id}/analyze-folder`, {
+    data: {
+      updateFields: params?.updateFields || []
+    }
+  })
+}

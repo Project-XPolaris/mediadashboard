@@ -1,0 +1,135 @@
+.modal {
+  .ant-modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+.setupContainer {
+  .promptSection {
+    margin-bottom: 24px;
+    
+    .promptTextArea {
+      margin: 8px 0;
+    }
+  }
+  
+  .bookListSection {
+    .bookList {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 8px;
+      
+      .bookPreview {
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+.processingContainer {
+  text-align: center;
+  padding: 40px 20px;
+  
+  .ant-spin {
+    margin-bottom: 16px;
+  }
+  
+  .cancelButton {
+    margin: 16px 0;
+  }
+  
+  .processingList {
+    margin-top: 24px;
+    text-align: left;
+    max-height: 300px;
+    overflow-y: auto;
+    
+    .processingItem {
+      padding: 8px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.resultsContainer {
+  .resultsHeader {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .resultsList {
+    max-height: 400px;
+    overflow-y: auto;
+    
+    .resultItem {
+      margin-bottom: 8px;
+      
+      &.selected {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+      
+      .tagsContainer {
+        .tagItem {
+          display: inline-flex;
+          align-items: center;
+          margin-bottom: 8px;
+          margin-right: 8px;
+          
+          .ant-checkbox {
+            margin-right: 6px;
+          }
+          
+          .selectableTag {
+            margin: 0;
+            cursor: pointer;
+          }
+        }
+      }
+      
+      .emptyTags {
+        margin: 0;
+        
+        .ant-empty-description {
+          color: #bfbfbf;
+        }
+      }
+    }
+  }
+}
+
+.tagsPreview {
+  margin-top: 8px;
+  
+  .ant-tag {
+    margin-bottom: 4px;
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .modal {
+    .ant-modal {
+      width: 95vw !important;
+      margin: 10px;
+    }
+  }
+  
+  .setupContainer .bookListSection .bookList {
+    max-height: 150px;
+  }
+  
+  .processingContainer .processingList {
+    max-height: 200px;
+  }
+  
+  .resultsContainer .resultsList {
+    max-height: 300px;
+  }
+}

@@ -12,19 +12,39 @@ export const fetchTagList = async (params: QueryTagListParams): Promise<ListCont
   return youComicRequest.get('/tags', {params})
 }
 
-export const matchTagWithName = async (name: string): Promise<YouComicAPI.MatchTag[]> => {
+export const matchTagWithName = async (
+  name: string, 
+  useLLM: boolean = true, 
+  customPrompt?: string,
+  abortSignal?: AbortSignal,
+  forceReprocess?: boolean
+): Promise<YouComicAPI.MatchTag[]> => {
   return youComicRequest.post(`/tags/match`, {
     data: {
-      text: name
-    }
+      text: name,
+      useLLM: useLLM,
+      customPrompt: customPrompt,
+      forceReprocess: forceReprocess
+    },
+    signal: abortSignal
   })
 }
 
-export const batchMatchTagWithName = async (texts: string[]): Promise<YouComicAPI.BatchMatchTag[]> => {
+export const batchMatchTagWithName = async (
+  texts: string[], 
+  useLLM: boolean = true, 
+  customPrompt?: string,
+  abortSignal?: AbortSignal,
+  forceReprocess?: boolean
+): Promise<YouComicAPI.BatchMatchTag[]> => {
   return youComicRequest.post(`/tags/batch-match`, {
     data: {
-      texts: texts
-    }
+      texts: texts,
+      useLLM: useLLM,
+      customPrompt: customPrompt,
+      forceReprocess: forceReprocess
+    },
+    signal: abortSignal
   })
 }
 
@@ -50,6 +70,42 @@ export const mergeTags = ({from,to}:{from:number,to:number}) => {
   return youComicRequest.post(`/tags/addTag`, {
     data: {
       from,to
+    }
+  })
+}
+
+export interface LLMTagHistoryItem {
+  id: number;
+  originalText: string;
+  modelName: string;
+  modelVersion: string;
+  customPrompt: string;
+  results: Array<{
+    name: string;
+    type: string;
+  }>;
+  processingTimeMs: number;
+  success: boolean;
+  usageCount: number;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export interface LLMTagHistoryResponse {
+  count: number;
+  data: LLMTagHistoryItem[];
+}
+
+export const getLLMTagHistory = async (params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}): Promise<LLMTagHistoryResponse> => {
+  return youComicRequest.post('/tags/llm-history', {
+    data: {
+      page: params.page || 1,
+      pageSize: params.pageSize || 20,
+      search: params.search
     }
   })
 }

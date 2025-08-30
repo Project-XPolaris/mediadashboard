@@ -40,7 +40,7 @@ declare namespace YouComicAPI {
     id: string
     name: string
     type: string
-    source: 'raw' | 'pattern' | 'database' | 'custom' | 'ai'
+    source: 'raw' | 'pattern' | 'database' | 'custom' | 'ai' | 'llm'
   }
 
   export type BatchMatchTag = {

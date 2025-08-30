@@ -3,12 +3,17 @@ import {useModel} from "@umijs/max";
 import {LibraryItem} from "@/pages/YouComic/models/libraryList";
 import {useEffect, useState} from "react";
 import {Button, Divider, Popconfirm} from "antd";
+import {PlusOutlined, AppstoreAddOutlined, DeleteOutlined, SyncOutlined, TagsOutlined, PictureOutlined, FileTextOutlined} from "@ant-design/icons";
 import NewYouComicLibraryDialog from "@/components/YouComic/NewLibraryDialog";
+import BatchCreateLibrariesDialog from "@/components/YouComic/BatchCreateLibrariesDialog";
+import {batchCreateLibraries, batchDeleteLibraries} from "@/services/youcomic/library";
 import ScanOptionDialog from "@/components/YouComic/GenerateThumbnailOptionDialog";
 
 const LibraryListPage = () => {
   const model = useModel('YouComic.libraryList')
   const [newLibraryDialog, setNewLibraryDialog] = useState(false)
+  const [batchDialogOpen, setBatchDialogOpen] = useState(false)
+  const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([])
   useEffect(() => {
     model.refresh({})
   }, [])
@@ -21,7 +26,8 @@ const LibraryListPage = () => {
     {
       title: 'name',
       dataIndex: 'name',
-      key: 'name'
+      key: 'name',
+      render: (text, record) => <a href={`#/youcomic/library/${record.id}`}>{text}</a>
     },
     {
       title: 'path',
@@ -43,9 +49,7 @@ const LibraryListPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <a>
-                Scan
-              </a>
+              <a><SyncOutlined /> Scan</a>
             </Popconfirm>
             <Divider type={"vertical"}/>
             <Popconfirm
@@ -56,9 +60,7 @@ const LibraryListPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <a>
-                Match Tags
-              </a>
+              <a><TagsOutlined /> Match Tags</a>
             </Popconfirm>
             <Divider type={"vertical"}/>
 
@@ -70,15 +72,11 @@ const LibraryListPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <a>
-                Delete
-              </a>
+              <a><DeleteOutlined /> Delete</a>
             </Popconfirm>
             <Divider type={"vertical"}/>
             <ScanOptionDialog
-              trigger={
-                <a>Generate thumbnails</a>
-              }
+              trigger={<a><PictureOutlined /> Generate thumbnails</a>}
               onOk={
                 (values) => model.generateThumbnails(record.id,values.force)
               }
@@ -92,9 +90,7 @@ const LibraryListPage = () => {
               okText="Yes"
               cancelText="No"
             >
-              <a>
-                Write meta
-              </a>
+              <a><FileTextOutlined /> Write meta</a>
             </Popconfirm>
             </>
         )
@@ -105,7 +101,8 @@ const LibraryListPage = () => {
     <PageContainer
       extra={
         <>
-          <Button onClick={() => setNewLibraryDialog(true)}>Add library</Button>
+          <Button icon={<PlusOutlined />} onClick={() => setNewLibraryDialog(true)}>Add library</Button>
+          <Button icon={<AppstoreAddOutlined />} style={{marginLeft: 8}} onClick={() => setBatchDialogOpen(true)}>Batch create</Button>
         </>
       }
     >
@@ -119,7 +116,46 @@ const LibraryListPage = () => {
         }
         visible={newLibraryDialog}
       />
-      <ProTable dataSource={model.libraryList} columns={columns}/>
+      <ProTable
+        rowKey={(r) => String(r.id)}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: (keys) => setSelectedRowKeys(keys as (string | number)[])
+        }}
+        dataSource={model.libraryList}
+        columns={columns}
+        tableAlertRender={({selectedRowKeys}) => `Selected ${selectedRowKeys.length} items`}
+        tableAlertOptionRender={({selectedRowKeys, onCleanSelected}) => (
+          <>
+            <a
+              onClick={async () => {
+                const ids = (selectedRowKeys as any[]).map((k) => Number(k))
+                if (ids.length === 0) return
+                await batchDeleteLibraries(ids)
+                onCleanSelected?.()
+                setSelectedRowKeys([])
+                await model.refresh({})
+              }}
+            >Delete</a>
+          </>
+        )}
+      />
+      <BatchCreateLibrariesDialog
+        visible={batchDialogOpen}
+        onCancel={() => setBatchDialogOpen(false)}
+        onSubmit={async (drafts, scan) => {
+          if (drafts.length === 0) {
+            setBatchDialogOpen(false)
+            return
+          }
+          await batchCreateLibraries({
+            libraries: drafts.map(d => ({name: d.name, path: d.path})),
+            scan
+          })
+          await model.refresh({})
+          setBatchDialogOpen(false)
+        }}
+      />
     </PageContainer>
   )
 }
