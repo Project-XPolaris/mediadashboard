@@ -234,6 +234,13 @@ export default [
         icon: 'robot',
         component: './YouComic/LLM',
       },
+      {
+        access: 'youcomic',
+        path: '/youcomic/templates/list',
+        name: '模板管理',
+        icon: 'file-text',
+        component: './YouComic/Templates/List',
+      },
     ],
   },
   {
