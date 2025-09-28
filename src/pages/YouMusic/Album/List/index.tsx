@@ -1,4 +1,4 @@
-import {useModel} from "@umijs/max";
+import {useModel, history} from "@umijs/max";
 import {PageContainer, ProColumnType, ProTable} from "@ant-design/pro-components";
 import {useEffect} from "react";
 import styles from './styles.less';
@@ -29,7 +29,12 @@ const AlbumListPage = () => {
       key: 'name',
       render: (text, record) => {
         return (
-          <a href={`/youmusic/album/detail?id=${record.id}`}>{text}</a>
+          <a 
+            onClick={() => history.push(`/youmusic/album/detail?id=${record.id}`)}
+            style={{ cursor: 'pointer' }}
+          >
+            {text}
+          </a>
         )
       }
     },

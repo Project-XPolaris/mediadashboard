@@ -9,8 +9,11 @@ import BatchMatchTagDrawer, {UpdateValue} from "@/components/YouComic/BatchMatch
 import MatchTagDialog from "@/components/YouComic/MatchTagDialog";
 import {LibraryPickUpDialog} from "@/components/YouComic/LibraryPickUpDialog";
 import LLMBatchMatchTagModal from "@/components/YouComic/LLMBatchMatchTagModal";
+import SelectCoverModal from "@/components/YouComic/SelectCoverModal";
+import CropCoverModal from "@/components/YouComic/CropCoverModal";
 import {MenuClickEventHandler} from "rc-menu/es/interface";
 import { history } from '@umijs/max';
+import TranslateTitleModal from '@/components/YouComic/TranslateTitleModal';
 
 const BookListPage = () => {
   const model = useModel('YouComic.bookList')
@@ -19,6 +22,10 @@ const BookListPage = () => {
   const [matchTagDialogOpen, setMatchTagDialogOpen] = useState(false)
   const [moveBookDialogOpen, setMoveBookDialogOpen] = useState(false)
   const [llmBatchModalOpen, setLlmBatchModalOpen] = useState(false)
+  const [selectCoverModalOpen, setSelectCoverModalOpen] = useState(false)
+  const [cropCoverModalOpen, setCropCoverModalOpen] = useState(false)
+  const [cropCoverBook, setCropCoverBook] = useState<YouComicAPI.Book | null>(null)
+  const [translateModalOpen, setTranslateModalOpen] = useState(false)
   useEffect(() => {
     model.loadData({})
   }, [])
@@ -52,7 +59,8 @@ const BookListPage = () => {
       library: newFilter.library,
       libraryIds: newFilter.libraryIds,
       tagSearch: newFilter.tagSearch,
-      tagSearchType: newFilter.tagSearchType
+      tagSearchType: newFilter.tagSearchType,
+      noTags: newFilter.noTags
     })
   };
   const onMatchNameDialogOk = async (title: string | undefined, tags: YouComicAPI.MatchTag[]) => {
@@ -76,6 +84,95 @@ const BookListPage = () => {
     model.updateList({books: updateValues})
     // 批量更新后清空选择
     model.setSelectedBooks([])
+  }
+
+  const onTranslateTitles = async () => {
+    const { message } = await import('antd');
+    if (model.selectedBooks.length === 0) {
+      message.warning('请先选择书籍喵～');
+      return;
+    }
+    setTranslateModalOpen(true);
+  }
+  const onSelectCoverOk = async (coverSelections: Array<{bookId: number, coverPath: string}>) => {
+    const { message } = await import('antd');
+    const loadingKey = 'updateCover';
+    
+    try {
+      // 调用API来更新书籍的封面
+      const { updateBook } = await import('@/services/youcomic/book');
+      
+      const totalCount = coverSelections.length;
+      message.loading({ content: `正在更新 ${totalCount} 本书的封面...`, key: loadingKey });
+      
+      for (let i = 0; i < coverSelections.length; i++) {
+        const selection = coverSelections[i];
+        await updateBook(selection.bookId, { cover: selection.coverPath });
+        
+        // 更新进度提示
+        if (i % 3 === 0 || i === coverSelections.length - 1) {
+          message.loading({ 
+            content: `正在更新封面... (${i + 1}/${totalCount})`, 
+            key: loadingKey 
+          });
+        }
+      }
+      
+      // 重新加载数据以获取最新的封面信息
+      await model.loadData({});
+      
+      // 批量更新后清空选择
+      model.setSelectedBooks([]);
+      
+      message.success({ 
+        content: `成功更新了 ${totalCount} 本书的封面喵～`, 
+        key: loadingKey,
+        duration: 3
+      });
+    } catch (error) {
+      console.error('更新封面失败:', error);
+      message.error({ 
+        content: '更新封面失败，请检查网络连接喵～', 
+        key: loadingKey,
+        duration: 5
+      });
+      // 如果更新失败，重新加载数据
+      await model.loadData({});
+      model.setSelectedBooks([]);
+    }
+  }
+  const onSingleBookSelectCover = (book: YouComicAPI.Book) => {
+    // 单个书籍选择封面 - 设置选中该书籍并打开封面选择模态框
+    model.setSelectedBooks([book]);
+    setSelectCoverModalOpen(true);
+  }
+  const onSingleBookCropCover = (book: YouComicAPI.Book) => {
+    // 单个书籍裁剪封面 - 设置当前书籍并打开裁剪模态框
+    setCropCoverBook(book);
+    setCropCoverModalOpen(true);
+  }
+  const onCropCoverOk = async (croppedImageData: { bookId: number; imageBlob: Blob; fileName: string }) => {
+    const { message } = await import('antd');
+    const { cropBookCover } = await import('@/services/youcomic/book');
+    
+    try {
+      message.loading('正在保存裁剪后的封面...');
+      
+      // 调用API保存裁剪后的封面
+      await cropBookCover(croppedImageData.bookId, croppedImageData.imageBlob, croppedImageData.fileName);
+      
+      // 重新加载数据以获取最新的封面信息
+      await model.loadData({});
+      
+      // 关闭模态框
+      setCropCoverModalOpen(false);
+      setCropCoverBook(null);
+      
+      message.success('封面裁剪保存成功喵～');
+    } catch (error) {
+      console.error('裁剪封面保存失败:', error);
+      message.error('封面裁剪保存失败，请重试喵～');
+    }
   }
   const onSelectAllBooks = () => {
     model.setSelectedBooks(model.books)
@@ -112,6 +209,10 @@ const BookListPage = () => {
     {
       key: 'llmBatchMatch',
       label: "LLM Batch Match"
+    },
+    {
+      key: 'selectCover',
+      label: "Select Cover"
     },
     {
       type: 'divider',
@@ -158,6 +259,9 @@ const BookListPage = () => {
       case 'llmBatchMatch':
         setLlmBatchModalOpen(true);
         break;
+      case 'selectCover':
+        setSelectCoverModalOpen(true);
+        break;
 
     }
   }
@@ -175,6 +279,7 @@ const BookListPage = () => {
             </>
           }
           <Button onClick={() => setBatchMatchTagDrawerOpen(true)}>Batch Match</Button>
+          <Button onClick={onTranslateTitles}>Translate Title</Button>
           <Button type={"primary"} onClick={() => setFilterDrawerOpen(true)}>Filter</Button>
         </>
       }
@@ -201,6 +306,31 @@ const BookListPage = () => {
         books={model.selectedBooks}
         onOk={onLLMBatchMatchOk}
       />
+      <SelectCoverModal
+        visible={selectCoverModalOpen}
+        onClose={() => setSelectCoverModalOpen(false)}
+        books={model.selectedBooks}
+        onOk={onSelectCoverOk}
+      />
+      <CropCoverModal
+        visible={cropCoverModalOpen}
+        onClose={() => {
+          setCropCoverModalOpen(false);
+          setCropCoverBook(null);
+        }}
+        book={cropCoverBook}
+        onOk={onCropCoverOk}
+      />
+      <TranslateTitleModal
+        visible={translateModalOpen}
+        onClose={() => setTranslateModalOpen(false)}
+        books={model.selectedBooks}
+        onApplied={async () => {
+          await model.loadData({});
+          model.setSelectedBooks([]);
+          setTranslateModalOpen(false);
+        }}
+      />
       <BatchMatchTagDrawer
         onClose={() => setBatchMatchTagDrawerOpen(false)}
         isOpen={batchMatchTagDrawerOpen}
@@ -221,6 +351,8 @@ const BookListPage = () => {
         selectedBooks={model.selectedBooks}
         onAddToCollectionAction={() => {
         }}
+        onSelectCover={onSingleBookSelectCover}
+        onCropCover={onSingleBookCropCover}
         onBookClick={onBookClick}
         type={"horizon"}
         onParseFromName={book => {

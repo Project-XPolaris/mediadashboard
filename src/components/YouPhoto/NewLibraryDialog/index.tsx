@@ -90,7 +90,7 @@ const NewYouPhotoLibraryDialog = (
               >
                 <List.Item.Meta
                   avatar={<Avatar icon={<FolderOutlined/>}/>}
-                  title={<a href="#" onClick={() => explore.navigate(item.path)}>{item.name}</a>}
+                  title={<span style={{cursor: 'pointer', color: '#1890ff'}} onClick={() => explore.navigate(item.path)}>{item.name}</span>}
                   description="Directory"
                 />
               </List.Item>

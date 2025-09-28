@@ -1,4 +1,4 @@
-import {Divider, Drawer} from "antd";
+import {Divider, Drawer, Switch, Space, Typography} from "antd";
 import useTaskModel, {TaskItem} from "@/components/Tasks/Drawer/model";
 import YouVideoScanTaskItem from "@/components/Tasks/Drawer/Items/YouVideoScanTaskItem";
 import styles from './styles.less'
@@ -17,8 +17,10 @@ import YouComicMoveBookItem from "@/components/Tasks/Drawer/Items/YouComicMoveBo
 import YouComicWriteMetaTaskItem from "@/components/Tasks/Drawer/Items/YouComicWriteMetaTaskItem";
 import YouComicRemoveEmptyTaskItem from "@/components/Tasks/Drawer/Items/YouComicRemoveEmptyTaskItem";
 import TaskViewer from "@/components/TaskViewer";
-import {useState, Fragment} from "react";
+import {useState, Fragment, useEffect} from "react";
 import YouPhotoLoraTrainTaskItem from "@/components/Tasks/Drawer/Items/YouPhotoLoraTrainTaskItem";
+
+const { Text } = Typography;
 
 export type  TaskDrawerProps = {
   open?: boolean
@@ -28,21 +30,32 @@ export type  TaskDrawerProps = {
 const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
   const model = useTaskModel()
   const [currentTask, setCurrentTask] = useState<TaskItem | undefined>()
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(() => {
+    // 从本地存储读取用户偏好，默认开启
+    const saved = localStorage.getItem('task-auto-refresh')
+    return saved !== null ? JSON.parse(saved) : true
+  })
+
+  // 保存用户偏好到本地存储
+  useEffect(() => {
+    localStorage.setItem('task-auto-refresh', JSON.stringify(autoRefresh))
+  }, [autoRefresh])
+
   useRequest(model.fetchYouComicTasks, {
-    pollingInterval: 1000,
-    retryCount:3
+    pollingInterval: autoRefresh ? 1000 : undefined,
+    retryCount: 3
   });
   useRequest(model.fetchYouVideoTasks, {
-    pollingInterval: 1000,
-    retryCount:3
+    pollingInterval: autoRefresh ? 1000 : undefined,
+    retryCount: 3
   })
   useRequest(model.fetchYouPhotoTasks, {
-    pollingInterval: 1000,
-    retryCount:3
+    pollingInterval: autoRefresh ? 1000 : undefined,
+    retryCount: 3
   })
   useRequest(model.fetchYouMusicTasks, {
-    pollingInterval: 1000,
-    retryCount:3
+    pollingInterval: autoRefresh ? 1000 : undefined,
+    retryCount: 3
   })
   const onTaskClick = (task: TaskItem) => {
     setCurrentTask(task)
@@ -84,7 +97,19 @@ const TaskDrawer = ({open, onClose}: TaskDrawerProps) => {
   }
   return (
     <Drawer
-      title="Task"
+      title={
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Text strong>任务列表</Text>
+          <Space>
+            <Text>自动刷新</Text>
+            <Switch 
+              checked={autoRefresh} 
+              onChange={setAutoRefresh}
+              size="small"
+            />
+          </Space>
+        </Space>
+      }
       placement="right"
       closable={false}
       onClose={onClose}

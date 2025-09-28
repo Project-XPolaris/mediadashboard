@@ -16,6 +16,19 @@ export const updateBook = async (id: number, data: any): Promise<any> => {
   })
 }
 
+export const cropBookCover = async (bookId: number, imageBlob: Blob, fileName: string): Promise<any> => {
+  const formData = new FormData();
+  formData.append('file', imageBlob, 'cropped_cover.jpg');
+  formData.append('fileName', fileName);
+
+  return youComicRequest.post(`/book/${bookId}/cover/crop`, {
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    }
+  });
+}
+
 export const deleteBook = async (id: number, permanently: boolean): Promise<any> => {
   return youComicRequest.delete(`/book/${id}`, {
     params: {
@@ -80,6 +93,20 @@ export const analyzeBookFolder = async (id: number, params?: AnalyzeBookFolderPa
   return youComicRequest.post(`/book/${id}/analyze-folder`, {
     data: {
       updateFields: params?.updateFields || []
+    }
+  })
+}
+
+export const translateBookTitles = async (
+  bookIds: number[], 
+  targetLanguages: string[], 
+  options?: { dryRun?: boolean }
+): Promise<{results: Array<{id: number, success: boolean, error?: string, data?: Record<string,string>}>}> => {
+  return youComicRequest.post('/books/translate-title', {
+    data: {
+      bookIds,
+      targetLanguages,
+      dryRun: options?.dryRun ?? false,
     }
   })
 }

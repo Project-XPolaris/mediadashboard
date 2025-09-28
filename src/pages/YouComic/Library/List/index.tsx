@@ -118,12 +118,25 @@ const LibraryListPage = () => {
       />
       <ProTable
         rowKey={(r) => String(r.id)}
+        loading={model.loading}
         rowSelection={{
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys as (string | number)[])
         }}
         dataSource={model.libraryList}
         columns={columns}
+        pagination={{
+          current: model.pagination.page,
+          pageSize: model.pagination.pageSize,
+          total: model.pagination.total,
+          showSizeChanger: true,
+          onChange: (page, pageSize) => {
+            model.refresh({ queryPagination: { page, pageSize, total: model.pagination.total } as any })
+          },
+          onShowSizeChange: (page, pageSize) => {
+            model.refresh({ queryPagination: { page, pageSize, total: model.pagination.total } as any })
+          }
+        }}
         tableAlertRender={({selectedRowKeys}) => `Selected ${selectedRowKeys.length} items`}
         tableAlertOptionRender={({selectedRowKeys, onCleanSelected}) => (
           <>

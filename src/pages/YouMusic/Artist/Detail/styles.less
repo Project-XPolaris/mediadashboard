@@ -1,0 +1,120 @@
+.artistHeader {
+  margin-bottom: 16px;
+  
+  .avatarSection {
+    text-align: center;
+    
+    .artistAvatar {
+      border: 3px solid #f0f0f0;
+      transition: all 0.3s;
+      
+      &:hover {
+        border-color: #1890ff;
+        transform: scale(1.05);
+      }
+    }
+    
+    .avatarActions {
+      margin-top: 12px;
+    }
+  }
+  
+  .artistInfo {
+    .artistName {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+      
+      h1 {
+        margin: 0;
+        margin-right: 16px;
+        font-size: 28px;
+        font-weight: 600;
+        color: #262626;
+      }
+    }
+    
+    .artistMeta {
+      .ant-tag {
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+.avatarUpload {
+  text-align: center;
+  padding: 20px;
+  
+  .currentAvatar {
+    margin-bottom: 24px;
+    
+    p {
+      margin-top: 12px;
+      color: #666;
+      font-size: 14px;
+    }
+  }
+}
+
+// 统计卡片样式
+:global(.ant-statistic) {
+  .ant-statistic-title {
+    color: #8c8c8c;
+    font-size: 14px;
+  }
+  
+  .ant-statistic-content {
+    color: #262626;
+    font-size: 24px;
+    font-weight: 600;
+  }
+}
+
+// 表格优化
+:global(.ant-pro-table-list-toolbar) {
+  padding: 16px 0;
+}
+
+:global(.ant-tabs-content-holder) {
+  padding-top: 16px;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .artistHeader {
+    .artistInfo {
+      .artistName {
+        flex-direction: column;
+        align-items: flex-start;
+        
+        h1 {
+          margin-right: 0;
+          margin-bottom: 8px;
+          font-size: 24px;
+        }
+      }
+    }
+  }
+  
+  .avatarSection {
+    margin-bottom: 20px;
+    
+    .artistAvatar {
+      width: 80px !important;
+      height: 80px !important;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .artistHeader {
+    .artistInfo {
+      .artistName {
+        h1 {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}

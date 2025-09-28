@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {
   Modal,
   Button,
@@ -11,10 +11,11 @@ import {
   message,
   Card,
   Avatar,
-  Empty
+  Empty,
+  Radio
 } from 'antd';
 import {BookOutlined, RobotOutlined, CheckOutlined, HistoryOutlined} from '@ant-design/icons';
-import {batchMatchTagWithName, getLLMTagHistory, LLMTagHistoryItem} from '@/services/youcomic/tag';
+import {batchMatchTagWithName, getLLMTagHistory, type LLMTagHistoryItem, matchTagWithName} from '@/services/youcomic/tag';
 import { useDebounce } from 'ahooks';
 import styles from './style.less';
 
@@ -25,16 +26,16 @@ export interface LLMBatchMatchTagModalProps {
   visible: boolean;
   onClose: () => void;
   books: YouComicAPI.Book[];
-  onOk: (results: Array<{id: number, title: string, tags: YouComicAPI.MatchTag[]}>) => void;
+  onOk: (results: {id: number, title: string, tags: YouComicAPI.MatchTag[]}[]) => void;
 }
 
 interface BookMatchResult {
   book: YouComicAPI.Book;
-  tags: Array<YouComicAPI.MatchTag & { selected: boolean }>;
+  tags: (YouComicAPI.MatchTag & { selected: boolean })[];
   processing: boolean;
 }
 
-const tagColorMapping: {[key: string]: string} = {
+const tagColorMapping: Record<string, string> = {
   name: 'red',
   artist: 'orange',
   series: 'lime',
@@ -64,13 +65,20 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
     processed: number;
   }>({ current: 0, total: 0, processed: 0 });
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [mode, setMode] = useState<'batch' | 'sequential'>('batch');
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const pauseResolverRef = useRef<(() => void) | null>(null);
+  const isPausedRef = useRef<boolean>(false);
+  const isProcessingRef = useRef<boolean>(false);
+  const [forceReprocess, setForceReprocess] = useState<boolean>(false);
   // 历史记录相关状态
   const [historyData, setHistoryData] = useState<LLMTagHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [historySearchText, setHistorySearchText] = useState<string>('');
   const [historyPage, setHistoryPage] = useState<number>(1);
   const [historyTotal, setHistoryTotal] = useState<number>(0);
-  const [selectedHistories, setSelectedHistories] = useState<{[bookId: number]: number[]}>({});
+  const [selectedHistories, setSelectedHistories] = useState<Record<number, number[]>>({});
   const debouncedHistorySearch = useDebounce(historySearchText, { wait: 300 });
 
   // 组件卸载时清理资源
@@ -82,17 +90,21 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
     };
   }, []);
 
+  // 同步状态到ref，供循环内读取最新值
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+  useEffect(() => { isProcessingRef.current = isProcessing; }, [isProcessing]);
+
   // 加载历史记录
-  const loadHistoryData = async (search?: string, page?: number) => {
+  const loadHistoryData = useCallback(async (search: string, page: number) => {
     setHistoryLoading(true);
     try {
       const response = await getLLMTagHistory({
-        page: page || historyPage,
+        page: page,
         pageSize: 10,
-        search: search || historySearchText
+        search: search
       });
       
-      if (page === 1 || !page) {
+      if (page === 1) {
         setHistoryData(response.data);
       } else {
         setHistoryData(prev => [...prev, ...response.data]);
@@ -104,18 +116,18 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
     } finally {
       setHistoryLoading(false);
     }
-  };
+  }, []);
 
   // 首次加载历史记录
   useEffect(() => {
     loadHistoryData('', 1);
-  }, []);
+  }, [loadHistoryData]);
 
   // 搜索历史记录
   useEffect(() => {
     setHistoryPage(1);
     loadHistoryData(debouncedHistorySearch, 1);
-  }, [debouncedHistorySearch]);
+  }, [debouncedHistorySearch, loadHistoryData]);
 
   // 重置状态
   const resetState = () => {
@@ -132,6 +144,11 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
     setSelectedHistories({});
     setHistorySearchText('');
     setHistoryPage(1);
+    setMode('batch');
+    setIsPaused(false);
+    setCurrentIndex(0);
+    pauseResolverRef.current = null;
+    setForceReprocess(false);
   };
 
   // 加载更多历史记录
@@ -173,7 +190,7 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
       const bookHistories = historyData.filter(h => bookHistoryIds.includes(h.id));
       
       // 合并历史记录的标签
-      const mergedTags: Array<YouComicAPI.MatchTag & { selected: boolean }> = [];
+      const mergedTags: (YouComicAPI.MatchTag & { selected: boolean })[] = [];
       const existingTagKeys = new Set<string>();
 
       bookHistories.forEach(history => {
@@ -224,75 +241,159 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
       message.error('没有可处理的书籍喵～');
       return;
     }
+    if (mode === 'batch') {
+      // 批量模式
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      setIsProcessing(true);
+      setCurrentStep('processing');
 
-    // 创建新的AbortController
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+      const BATCH_SIZE = 20;
+      const totalBatches = Math.ceil(books.length / BATCH_SIZE);
+      setBatchProgress({ current: 0, total: totalBatches, processed: 0 });
 
-    setIsProcessing(true);
-    setCurrentStep('processing');
-
-    // 计算分批信息（与后端保持一致，每批最多处理20个）
-    const BATCH_SIZE = 20;
-    const totalBatches = Math.ceil(books.length / BATCH_SIZE);
-    setBatchProgress({ current: 0, total: totalBatches, processed: 0 });
-
-    // 初始化结果
-    const initialResults: BookMatchResult[] = books.map(book => ({
-      book,
-      tags: [],
-      processing: true
-    }));
-    setResults(initialResults);
-
-    try {
-      // 准备文本数组 - 使用原始文件夹名称(dirName)
-      const texts = books.map(book => book.dirName || book.name || `Book ${book.id}`);
-      
-      // 模拟批量处理进度（实际上后端会分批，但我们一次性调用API）
-      setBatchProgress(prev => ({ ...prev, current: 1 }));
-      
-      // 调用LLM批量识别API，传入AbortSignal
-      const batchResults = await batchMatchTagWithName(texts, true, customPrompt, controller.signal);
-
-      // 检查是否已被取消
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      // 更新结果 - 每个tag都有独立的选中状态
-      const updatedResults: BookMatchResult[] = initialResults.map((result, index) => ({
-        ...result,
-        tags: (batchResults[index]?.result || []).map(tag => ({
-          ...tag,
-          selected: true // 默认选中所有识别出的tag
-        })),
-        processing: false
+      const initialResults: BookMatchResult[] = books.map(book => ({
+        book,
+        tags: [],
+        processing: true
       }));
+      setResults(initialResults);
 
-      setResults(updatedResults);
-      setBatchProgress({ current: totalBatches, total: totalBatches, processed: books.length });
-      setCurrentStep('results');
-      
-      const batchText = totalBatches > 1 ? `分${totalBatches}批处理` : '批量处理';
-      message.success(`成功通过LLM ${batchText}识别了 ${books.length} 个项目的标签，高效又准确喵～`);
-    } catch (error: any) {
-      // 检查是否是用户主动取消
-      if (error.name === 'AbortError' || controller.signal.aborted) {
-        console.log('用户取消了LLM识别请求');
-        return; // 用户取消不显示错误消息
+      try {
+        const texts = books.map(book => book.dirName || book.name || `Book ${book.id}`);
+        setBatchProgress(prev => ({ ...prev, current: 1 }));
+        const batchResults = await batchMatchTagWithName(texts, true, customPrompt, controller.signal, forceReprocess);
+        if (controller.signal.aborted) {
+          return;
+        }
+        const updatedResults: BookMatchResult[] = initialResults.map((result, index) => ({
+          ...result,
+          tags: (batchResults[index]?.result || []).map(tag => ({
+            ...tag,
+            selected: true
+          })),
+          processing: false
+        }));
+        setResults(updatedResults);
+        setBatchProgress({ current: totalBatches, total: totalBatches, processed: books.length });
+        setCurrentStep('results');
+        const batchText = totalBatches > 1 ? `分${totalBatches}批处理` : '批量处理';
+        message.success(`成功通过LLM ${batchText}识别了 ${books.length} 个项目的标签，高效又准确喵～`);
+      } catch (error: any) {
+        if (error.name === 'AbortError' || controller.signal.aborted) {
+          return;
+        }
+        console.error('LLM批量识别失败:', error);
+        message.error('LLM识别失败，请检查网络连接喵～');
+        setResults(prev => prev.map(result => ({ ...result, processing: false })));
+      } finally {
+        setIsProcessing(false);
+        abortControllerRef.current = null;
       }
-      
-      console.error('LLM批量识别失败:', error);
-      message.error('LLM识别失败，请检查网络连接喵～');
-      setResults(prev => prev.map(result => ({
-        ...result,
-        processing: false
-      })));
-    } finally {
-      setIsProcessing(false);
+    } else {
+      // 逐个模式
+      await startSequentialRecognition();
+    }
+  };
+
+  // 逐个识别流程
+  async function startSequentialRecognition() {
+    setIsProcessing(true);
+    isProcessingRef.current = true;
+    // 逐个模式直接进入结果页，边处理边填充结果
+    setCurrentStep('results');
+    setIsPaused(false);
+    setBatchProgress({ current: 0, total: 1, processed: currentIndex });
+
+    // 初始化结果（若首次开始）
+    if (results.length === 0) {
+      const initialResults: BookMatchResult[] = books.map(book => ({
+        book,
+        tags: [],
+        processing: true
+      }));
+      setResults(initialResults);
+    } else {
+      // 标记未处理项为 processing
+      setResults(prev => prev.map((r, idx) => idx < currentIndex ? r : { ...r, processing: true }));
+    }
+
+    for (let i = currentIndex; i < books.length; i++) {
+      // 如果暂停，等待恢复
+      if (isPausedRef.current) {
+        await new Promise<void>((resolve) => {
+          pauseResolverRef.current = resolve;
+        });
+      }
+
+      // 检查是否被停止
+      if (!isProcessingRef.current) {
+        break;
+      }
+
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const book = books[i];
+      const text = book.dirName || book.name || `Book ${book.id}`;
+      try {
+        const singleResult = await matchTagWithName(text, true, customPrompt, controller.signal, forceReprocess);
+        if (controller.signal.aborted) {
+          break;
+        }
+        // 写入结果
+        const llmOnly = (singleResult || []).filter((t: any) => t && (t.source === 'llm' || t.source === 'ai'));
+        setResults(prev => prev.map((r, idx) => idx === i ? ({
+          ...r,
+          tags: llmOnly.map((tag: any) => ({ ...tag, selected: true })),
+          processing: false
+        }) : r));
+      } catch (error: any) {
+        if (error.name === 'AbortError' || controller.signal.aborted) {
+          break;
+        }
+        console.error('LLM单项识别失败:', error);
+        message.error(`识别失败：${text}`);
+        setResults(prev => prev.map((r, idx) => idx === i ? ({ ...r, processing: false }) : r));
+      } finally {
+        abortControllerRef.current = null;
+        setBatchProgress(prev => ({ ...prev, processed: i + 1 }));
+        setCurrentIndex(i + 1);
+      }
+    }
+
+    setIsProcessing(false);
+    isProcessingRef.current = false;
+    setCurrentStep('results');
+  };
+
+  // 暂停/继续
+  const togglePause = () => {
+    if (!isProcessing) return;
+    if (isPaused) {
+      setIsPaused(false);
+      if (pauseResolverRef.current) {
+        pauseResolverRef.current();
+        pauseResolverRef.current = null;
+      }
+      message.info('已继续识别喵～');
+    } else {
+      setIsPaused(true);
+      message.info('已暂停识别喵～');
+    }
+  };
+
+  // 停止（结束当前、保留已完成结果并进入结果页）
+  const stopSequential = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    setIsPaused(false);
+    setIsProcessing(false);
+    isProcessingRef.current = false;
+    setCurrentStep('results');
+    message.info('已停止识别并显示阶段性结果喵～');
   };
 
   // 切换单个标签的选择状态
@@ -396,6 +497,25 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
         </Text>
       </div>
 
+      <div style={{ marginTop: 12 }}>
+        <Checkbox checked={forceReprocess} onChange={(e) => setForceReprocess(e.target.checked)}>
+          不使用缓存结果（强制新识别）
+        </Checkbox>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Text strong>识别模式</Text>
+        <div style={{ marginTop: 8 }}>
+          <Radio.Group value={mode} onChange={(e) => setMode(e.target.value)}>
+            <Radio.Button value="batch">批量（一次性）</Radio.Button>
+            <Radio.Button value="sequential">逐个（可暂停/继续）</Radio.Button>
+          </Radio.Group>
+        </div>
+        <Text type="secondary">
+          {mode === 'batch' ? '推荐在网络稳定时使用，速度更快。' : '逐个请求接口，可随时暂停和继续，稳定性更好。'}
+        </Text>
+      </div>
+
       <div className={styles.bookListSection}>
         <Text strong>待处理的书籍 ({books.length} 项)</Text>
         <div className={styles.bookList}>
@@ -460,7 +580,7 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
               <div className={styles.historyTags}>
                 {history.results.map((result, idx) => (
                   <Tag 
-                    key={idx}
+                    key={`${history.id}-${result.type}-${result.name}-${idx}`}
                     color={tagColorMapping[result.type] || 'default'}
                   >
                     {result.type}: {result.name}
@@ -511,52 +631,42 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
       <div className={styles.processingContainer}>
         <Spin size="large" />
         <Title level={4}>正在使用LLM智能识别标签...</Title>
-        
-        {batchProgress.total > 1 ? (
-          <div>
-            <Text type="secondary">
-              正在分批处理 {books.length} 个项目（每批最多20个）喵～
-            </Text>
-            <div style={{ margin: '16px 0' }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text strong>批次进度：</Text>
-                  <Text>{batchProgress.current}/{batchProgress.total} 批</Text>
-                </div>
-                <div style={{ 
-                  background: '#f0f0f0', 
-                  borderRadius: '4px', 
-                  height: '8px', 
-                  overflow: 'hidden' 
-                }}>
-                  <div 
-                    style={{ 
-                      background: '#1890ff', 
-                      height: '100%', 
-                      width: `${progressPercentage}%`,
-                      transition: 'width 0.3s ease'
-                    }} 
-                  />
-                </div>
-                <Text type="secondary">已处理：{progressPercentage}%</Text>
-              </Space>
-            </div>
-          </div>
-        ) : (
-          <Text type="secondary">正在处理 {books.length} 个项目喵～</Text>
-        )}
 
-        <div className={styles.cancelButton}>
-          <Button 
-            type="default" 
-            danger 
-            onClick={cancelRequest}
-            disabled={!isProcessing || !abortControllerRef.current}
-            size="large"
-          >
-            取消识别
-          </Button>
-        </div>
+        {mode === 'batch' ? (
+          batchProgress.total > 1 ? (
+            <div>
+              <Text type="secondary">
+                正在分批处理 {books.length} 个项目（每批最多20个）喵～
+              </Text>
+              <div style={{ margin: '16px 0' }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text strong>批次进度：</Text>
+                    <Text>{batchProgress.current}/{batchProgress.total} 批</Text>
+                  </div>
+                  <div style={{ 
+                    background: '#f0f0f0', 
+                    borderRadius: '4px', 
+                    height: '8px', 
+                    overflow: 'hidden' 
+                  }}>
+                    <div 
+                      style={{ 
+                        background: '#1890ff', 
+                        height: '100%', 
+                        width: `${progressPercentage}%`,
+                        transition: 'width 0.3s ease'
+                      }} 
+                    />
+                  </div>
+                  <Text type="secondary">已处理：{progressPercentage}%</Text>
+                </Space>
+              </div>
+            </div>
+          ) : (
+            <Text type="secondary">正在处理 {books.length} 个项目喵～</Text>
+          )
+        ) : null}
         
         <div className={styles.processingList}>
           {results.map((result) => (
@@ -599,6 +709,17 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
               {results.some(result => result.tags.some(tag => !tag.selected)) ? '全选标签' : '取消全选'}
             </Button>
             <Text type="secondary">已选择标签: {totalSelectedTags}/{totalTags}</Text>
+            {mode === 'sequential' && isProcessing && (
+              <>
+                <Text type="secondary">进度：{currentIndex}/{books.length}</Text>
+                <Button size="small" onClick={togglePause}>
+                  {isPaused ? '继续' : '暂停'}
+                </Button>
+                <Button size="small" danger onClick={stopSequential}>
+                  停止
+                </Button>
+              </>
+            )}
           </Space>
         </div>
 
@@ -628,7 +749,7 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
                 {result.tags.length > 0 ? (
                   <div className={styles.tagsContainer}>
                     {result.tags.map((tag, index) => (
-                      <div key={index} className={styles.tagItem}>
+                      <div key={tag.id || `${result.book.id}-${tag.type}-${tag.name}-${index}`} className={styles.tagItem}>
                         <Checkbox
                           checked={tag.selected}
                           onChange={() => toggleTagSelection(result.book.id, tag.id)}
@@ -706,18 +827,32 @@ const LLMBatchMatchTagModal: React.FC<LLMBatchMatchTagModalProps> = ({
     }
 
     if (currentStep === 'processing') {
+      if (mode === 'batch') {
+        return [
+          <Button key="cancel" onClick={handleCancel} disabled={isProcessing}>
+            关闭
+          </Button>,
+          <Button 
+            key="abort" 
+            type="primary" 
+            danger 
+            onClick={cancelRequest}
+            disabled={!isProcessing || !abortControllerRef.current}
+          >
+            取消识别
+          </Button>
+        ];
+      }
+      // sequential footer
       return [
-        <Button key="cancel" onClick={handleCancel} disabled={isProcessing}>
+        <Button key="close" onClick={handleCancel} disabled={isProcessing}>
           关闭
         </Button>,
-        <Button 
-          key="abort" 
-          type="primary" 
-          danger 
-          onClick={cancelRequest}
-          disabled={!isProcessing || !abortControllerRef.current}
-        >
-          取消识别
+        <Button key="pause" onClick={togglePause} disabled={!isProcessing}>
+          {isPaused ? '继续' : '暂停'}
+        </Button>,
+        <Button key="stop" type="primary" danger onClick={stopSequential} disabled={!isProcessing}>
+          停止并查看结果
         </Button>
       ];
     }

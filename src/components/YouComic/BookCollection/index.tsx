@@ -7,6 +7,8 @@ interface BooksCollectionPropsType {
   books?: YouComicAPI.Book[];
   onSelectAction: (book: YouComicAPI.Book) => void;
   onAddToCollectionAction: (book: YouComicAPI.Book) => void;
+  onSelectCover?: (book: YouComicAPI.Book) => void;
+  onCropCover?: (book: YouComicAPI.Book) => void;
   selectedBooks?: YouComicAPI.Book[];
   onBookClick?: (book: YouComicAPI.Book) => void;
   type?: 'vertical' | 'horizon';
@@ -18,6 +20,8 @@ export default function BooksCollection({
   selectedBooks = [],
   onSelectAction,
   onAddToCollectionAction,
+  onSelectCover,
+  onCropCover,
   onBookClick,
   onParseFromName,
   type = 'vertical',
@@ -30,6 +34,8 @@ export default function BooksCollection({
             book={book}
             onSelectAction={onSelectAction}
             onAddToCollectionAction={onAddToCollectionAction}
+            onSelectCover={onSelectCover}
+            onCropCover={onCropCover}
             isSelected={Boolean(selectedBooks?.find(selectedBook => selectedBook.id === book.id))}
             onBookClick={onBookClick}
           />
@@ -39,6 +45,8 @@ export default function BooksCollection({
             book={book}
             onSelectAction={onSelectAction}
             onAddToCollectionAction={onAddToCollectionAction}
+            onSelectCover={onSelectCover}
+            onCropCover={onCropCover}
             isSelected={Boolean(selectedBooks?.find(selectedBook => selectedBook.id === book.id))}
             onBookClick={onBookClick}
             onParseFromName={onParseFromName}

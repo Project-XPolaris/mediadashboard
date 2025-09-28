@@ -18,6 +18,8 @@ declare namespace YouComicAPI {
     updated_at: Date;
     name: string;
     cover: string;
+    coverThumbnail?: string;
+    hasThumbnail?: boolean;
     tags: Tag[];
     dirName: string;
   }

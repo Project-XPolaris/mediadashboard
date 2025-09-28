@@ -1,10 +1,25 @@
 import {youMusicRequest} from "@/services/youmusic/client";
 
-export const fetchAlbumList = async ({page = 1,pageSize = 20}:{page:number,pageSize:number}):Promise<YouMusicAPI.ListContainer < YouMusicAPI.Album >> => {
+type AlbumQueryParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  order?: string;
+}
+
+export const fetchAlbumList = async ({
+  page = 1,
+  pageSize = 20,
+  search,
+  order
+}: AlbumQueryParams): Promise<YouMusicAPI.ListContainer<YouMusicAPI.Album>> => {
   return youMusicRequest('/album', {
     method: "GET",
-    params:{
-      page,pageSize
+    params: {
+      page,
+      pageSize,
+      search,
+      order
     }
   })
 }

@@ -1,0 +1,161 @@
+.youmusic-tag-list {
+  .tag-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    
+    .header-left {
+      h2 {
+        margin: 0 0 8px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #262626;
+      }
+      
+      p {
+        margin: 0;
+        color: #8c8c8c;
+        font-size: 14px;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  }
+  
+  .batch-actions {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: #f0f9ff;
+    border: 1px solid #bae7ff;
+    border-radius: 6px;
+    
+    span {
+      color: #1890ff;
+      font-weight: 500;
+    }
+  }
+  
+  .ant-table {
+    .ant-table-thead > tr > th {
+      background: #fafafa;
+      font-weight: 600;
+    }
+    
+    .ant-table-tbody > tr {
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+  }
+  
+  // 标签样式
+  .ant-tag {
+    border-radius: 4px;
+    font-weight: 500;
+    
+    &.ant-tag-blue {
+      background: #e6f7ff;
+      border-color: #91d5ff;
+      color: #1890ff;
+    }
+  }
+  
+  // 徽章样式
+  .ant-badge {
+    .ant-badge-count {
+      font-size: 12px;
+      height: 18px;
+      line-height: 18px;
+      min-width: 18px;
+      padding: 0 4px;
+    }
+  }
+  
+  // 操作按钮样式
+  .ant-btn {
+    &.ant-btn-text {
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+      
+      &.ant-btn-dangerous:hover {
+        background: rgba(255, 77, 79, 0.06);
+        color: #ff4d4f;
+      }
+    }
+  }
+  
+  // 模态框内容样式
+  .ant-modal {
+    .ant-form {
+      .ant-form-item-label > label {
+        font-weight: 500;
+      }
+    }
+  }
+  
+  // 搜索框样式
+  .ant-input-search {
+    .ant-input-search-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  
+  // 分页样式
+  .ant-pagination {
+    margin-top: 24px;
+    text-align: right;
+    
+    .ant-pagination-total-text {
+      color: #8c8c8c;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .youmusic-tag-list {
+    .tag-list-header {
+      flex-direction: column;
+      gap: 16px;
+      
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+        
+        .ant-input-search {
+          flex: 1;
+          max-width: none;
+        }
+      }
+    }
+    
+    .batch-actions {
+      .ant-space {
+        flex-wrap: wrap;
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .youmusic-tag-list {
+    .tag-list-header {
+      .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        
+        .ant-space {
+          justify-content: space-between;
+        }
+      }
+    }
+  }
+}

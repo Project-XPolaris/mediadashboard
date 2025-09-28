@@ -35,12 +35,14 @@ const musicListModel = () => {
       page = pagination,
       title,
       album,
-      artist
+      artist,
+      order = "-createdAt"
     }: {
       page?: DataPagination,
       title?: string,
       album?: string
-      artist?:string
+      artist?:string,
+      order?: string
     }) => {
     const response = await fetchMusicList({
       page: page.page,
@@ -48,7 +50,8 @@ const musicListModel = () => {
       search: title,
       albumSearch:album,
       artistSearch:artist,
-      withTag:"1"
+      withTag:"1",
+      order
     })
     if (response?.data) {
       const newList = response.data

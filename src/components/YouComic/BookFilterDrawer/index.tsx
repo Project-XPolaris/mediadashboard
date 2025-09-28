@@ -6,6 +6,7 @@ import TagFilterSection from "@/components/YouComic/BookFilterDrawer/sections/Ta
 import LibraryFilterSection from "@/components/YouComic/BookFilterDrawer/sections/LibraryFilterSection";
 import TimeRangeFilterSection from "@/components/YouComic/BookFilterDrawer/sections/TimeRangeFilterSection";
 import TagSearchSection from "@/components/YouComic/BookFilterDrawer/sections/TagSearchSection";
+import NoTagsFilterSection from "@/components/YouComic/BookFilterDrawer/sections/NoTagsFilterSection";
 
 
 interface BookFilterDrawerPropsType {
@@ -30,6 +31,7 @@ export interface BookFilter {
   pathSearch?: string
   tagSearch?: string
   tagSearchType?: string
+  noTags?: string
 }
 
 const orderItems = [
@@ -112,6 +114,12 @@ export default function BookFilterDrawer(
       tagSearchType: type
     })
   };
+  const onNoTagsFilterChange = (mode: string) => {
+    onFilterChange({
+      ...filter,
+      noTags: mode
+    })
+  };
   return (
     <Drawer
       title="过滤器"
@@ -160,6 +168,11 @@ export default function BookFilterDrawer(
       <SearchNameFilterSection
         onSetSearchName={onAddPathSearch}
         title={"路径搜索"}
+      />
+      <Divider/>
+      <NoTagsFilterSection
+        value={filter.noTags}
+        onChange={onNoTagsFilterChange}
       />
     </Drawer>
   );

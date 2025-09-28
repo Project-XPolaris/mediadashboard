@@ -59,7 +59,7 @@ const NewYouMusicLibraryDialog = (
               >
                 <List.Item.Meta
                   avatar={<Avatar icon={<FolderOutlined/>}/>}
-                  title={<a href="#" onClick={() => explore.navigate(item.path)}>{item.name}</a>}
+                  title={<span style={{color: '#1890ff', cursor: 'pointer'}} onClick={() => explore.navigate(item.path)}>{item.name}</span>}
                   description="Directory"
                 />
               </List.Item>

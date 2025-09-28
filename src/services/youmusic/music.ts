@@ -7,7 +7,8 @@ export type MusicQueryParams = {
   search?: string;
   albumSearch?: string;
   artistSearch?: string;
-  withTag?:string
+  withTag?:string;
+  order?: string;
 }
 export const fetchMusicList = async (
   {
@@ -16,12 +17,13 @@ export const fetchMusicList = async (
     search,
     albumSearch,
     artistSearch,
-    withTag
+    withTag,
+    order
   }: MusicQueryParams): Promise<YouMusicAPI.ListContainer<YouMusicAPI.Music>> => {
   return youMusicRequest('/music', {
     method: "GET",
     params: {
-      page, pageSize, search, albumSearch, artistSearch,withTag
+      page, pageSize, search, albumSearch, artistSearch, withTag, order
     }
   })
 }

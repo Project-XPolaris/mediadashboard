@@ -2,14 +2,16 @@ import { Card, Dropdown, Menu } from 'antd';
 import styles from './style.less';
 import CheckIcon from '@ant-design/icons/CheckOutlined';
 import FolderIcon from '@ant-design/icons/FolderFilled';
-import { EditOutlined } from '@ant-design/icons';
-import ImageLoader from "@/components/YouComic/ImageLoader";
+import { EditOutlined, PictureOutlined, ScissorOutlined } from '@ant-design/icons';
+import ImageLoader, { BookCoverLoader } from "@/components/YouComic/ImageLoader";
 import {getBookTagInfo} from "@/utils/YouComic/book";
 
 interface BookCardPropsType {
   book: YouComicAPI.Book;
   onSelectAction: (book: YouComicAPI.Book) => void;
   onAddToCollectionAction: (book: YouComicAPI.Book) => void;
+  onSelectCover?: (book: YouComicAPI.Book) => void;
+  onCropCover?: (book: YouComicAPI.Book) => void;
   isSelected?: boolean;
   onBookClick?: (book: YouComicAPI.Book) => void;
 }
@@ -18,6 +20,8 @@ export default function BookCard({
   book,
   onSelectAction,
   onAddToCollectionAction,
+  onSelectCover,
+  onCropCover,
   isSelected = false,
   onBookClick,
 }: BookCardPropsType) {
@@ -27,6 +31,16 @@ export default function BookCard({
   };
   const onMenuItemAddToCollection = () => {
     onAddToCollectionAction(book);
+  };
+  const onMenuItemSelectCover = () => {
+    if (onSelectCover) {
+      onSelectCover(book);
+    }
+  };
+  const onMenuItemCropCover = () => {
+    if (onCropCover) {
+      onCropCover(book);
+    }
   };
   const menu = (
     <Menu>
@@ -42,6 +56,18 @@ export default function BookCard({
         <EditOutlined />
         从文件名解析
       </Menu.Item>
+      {onSelectCover && (
+        <Menu.Item key="4" onClick={onMenuItemSelectCover}>
+          <PictureOutlined />
+          选择封面
+        </Menu.Item>
+      )}
+      {onCropCover && (
+        <Menu.Item key="5" onClick={onMenuItemCropCover}>
+          <ScissorOutlined />
+          裁剪封面
+        </Menu.Item>
+      )}
     </Menu>
   );
   const onBookCardClick = () => {
@@ -57,7 +83,7 @@ export default function BookCard({
         hoverable
         cover={
           <div className={styles.coverWrap}>
-            <ImageLoader className={styles.cover} url={book.cover} />
+            <BookCoverLoader className={styles.cover} book={book} />
           </div>
         }
         style={{ backgroundColor: isSelected ? '#1890ff' : undefined }}

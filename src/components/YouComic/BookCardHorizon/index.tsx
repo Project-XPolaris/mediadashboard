@@ -1,15 +1,17 @@
 import { Card, Dropdown, Menu } from 'antd';
 import styles from './style.less';
-import { UserOutlined, BookOutlined, GlobalOutlined, EditOutlined } from '@ant-design/icons/lib';
+import { UserOutlined, BookOutlined, GlobalOutlined, EditOutlined, PictureOutlined, ScissorOutlined } from '@ant-design/icons/lib';
 import CheckIcon from '@ant-design/icons/CheckOutlined';
 import FolderIcon from '@ant-design/icons/FolderFilled';
-import ImageLoader from "@/components/YouComic/ImageLoader";
+import ImageLoader, { BookCoverLoader } from "@/components/YouComic/ImageLoader";
 import {getBookTagInfo} from "@/utils/YouComic/book";
 
 export interface BookCardHorizonPropsType {
   book?: YouComicAPI.Book;
   onSelectAction: (book: YouComicAPI.Book) => void;
   onAddToCollectionAction: (book: YouComicAPI.Book) => void;
+  onSelectCover?: (book: YouComicAPI.Book) => void;
+  onCropCover?: (book: YouComicAPI.Book) => void;
   isSelected?: boolean;
   onBookClick?: (book: YouComicAPI.Book) => void;
   onParseFromName: (book: YouComicAPI.Book) => void;
@@ -19,6 +21,8 @@ const BookCardHorizon = ({
   book,
   onSelectAction,
   onAddToCollectionAction,
+  onSelectCover,
+  onCropCover,
   isSelected = false,
   onBookClick,
   onParseFromName,
@@ -42,6 +46,18 @@ const BookCardHorizon = ({
     }
     onParseFromName(book);
   };
+  const onMenuItemSelectCover = () => {
+    if (!book || !onSelectCover) {
+      return;
+    }
+    onSelectCover(book);
+  };
+  const onMenuItemCropCover = () => {
+    if (!book || !onCropCover) {
+      return;
+    }
+    onCropCover(book);
+  };
   const menu = (
     <Menu>
       <Menu.Item key="1" onClick={onMenuItemSelect}>
@@ -56,6 +72,18 @@ const BookCardHorizon = ({
         <EditOutlined />
         从文件名解析
       </Menu.Item>
+      {onSelectCover && (
+        <Menu.Item key="4" onClick={onMenuItemSelectCover}>
+          <PictureOutlined />
+          选择封面
+        </Menu.Item>
+      )}
+      {onCropCover && (
+        <Menu.Item key="5" onClick={onMenuItemCropCover}>
+          <ScissorOutlined />
+          裁剪封面
+        </Menu.Item>
+      )}
     </Menu>
   );
   const onBookCardClick = () => {
@@ -71,7 +99,7 @@ const BookCardHorizon = ({
           className={styles.content}
           style={{ backgroundColor: isSelected ? '#1890ff' : undefined }}
         >
-          <ImageLoader className={styles.cover} url={book?.cover} />
+          {book && <BookCoverLoader className={styles.cover} book={book} />}
           <div className={styles.info}>
             <div className={styles.title} style={{ color: isSelected ? '#FFFFFF' : undefined }}>
               {book?.name || '未知'}

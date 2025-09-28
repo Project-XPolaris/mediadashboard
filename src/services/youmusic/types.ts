@@ -19,6 +19,9 @@ declare namespace YouMusicAPI {
   export interface Tag {
     id: number
     name: string,
+    createdAt?: string
+    updatedAt?: string
+    musicCount?: number
   }
 
   export interface Album {
@@ -36,6 +39,7 @@ declare namespace YouMusicAPI {
   export interface Artist {
     id: number;
     name: string;
+    avatar?: string;
     createdAt: string;
     updatedAt: string;
   }

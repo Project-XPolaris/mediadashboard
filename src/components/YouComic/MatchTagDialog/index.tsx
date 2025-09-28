@@ -1,4 +1,5 @@
-import { ReactElement, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import type { ReactElement } from 'react';
 import style from './style.less';
 import {
   Button,
@@ -6,7 +7,6 @@ import {
   Input,
   List,
   Modal,
-  ModalProps,
   Select,
   Space,
   Spin,
@@ -15,11 +15,12 @@ import {
   Typography,
   message,
 } from 'antd';
+import type { ModalProps } from 'antd';
 import { useDebounce } from 'ahooks';
 import AddIcon from '@ant-design/icons/PlusOutlined';
 import { generateId } from '@/utils/id';
 import {PlusOutlined} from "@ant-design/icons/lib";
-import {matchTagWithName, getLLMTagHistory, LLMTagHistoryItem} from "@/services/youcomic/tag";
+import {matchTagWithName, getLLMTagHistory, type LLMTagHistoryItem} from "@/services/youcomic/tag";
 
 const { TabPane } = Tabs;
 
@@ -59,14 +60,14 @@ const MatchTagDialog = ({
   const [historyPage, setHistoryPage] = useState<number>(1);
   const [historyTotal, setHistoryTotal] = useState<number>(0);
 
-  const getSavePattern = ():[] => {
+  const getSavePattern = (): string[] => {
     const rawJson = localStorage.getItem("save_pattern")
     if (!rawJson) {
       return []
     }
     return JSON.parse(rawJson)
   }
-  const [regexPatterns,setRegexPatterns] = useState<[]>(getSavePattern())
+  const [regexPatterns,setRegexPatterns] = useState<string[]>(getSavePattern())
   const matchText = useDebounce(value);
 
   // 组件卸载时清理资源
@@ -80,7 +81,7 @@ const MatchTagDialog = ({
   }, []);
 
   // 加载历史记录（只显示与当前文本相关的）
-  const loadHistoryData = async (search?: string, page?: number) => {
+  const loadHistoryData = useCallback(async (search: string, page: number) => {
     if (!value.trim()) {
       setHistoryData([]);
       setHistoryTotal(0);
@@ -90,12 +91,12 @@ const MatchTagDialog = ({
     setHistoryLoading(true);
     try {
       const response = await getLLMTagHistory({
-        page: page || historyPage,
+        page: page,
         pageSize: 5, // 减少每页数量
-        search: search || value.trim() // 使用当前输入文本作为搜索条件
+        search: search // 使用当前输入文本作为搜索条件
       });
       
-      if (page === 1 || !page) {
+      if (page === 1) {
         setHistoryData(response.data);
       } else {
         setHistoryData(prev => [...prev, ...response.data]);
@@ -107,7 +108,7 @@ const MatchTagDialog = ({
     } finally {
       setHistoryLoading(false);
     }
-  };
+  }, [value]);
 
   // 当输入文本变化时，重新加载相关历史记录
   useEffect(() => {
@@ -118,7 +119,7 @@ const MatchTagDialog = ({
       setHistoryData([]);
       setHistoryTotal(0);
     }
-  }, [value]);
+  }, [value, loadHistoryData]);
 
   // 监听text prop变化，更新内部value状态
   useEffect(() => {
@@ -143,7 +144,7 @@ const MatchTagDialog = ({
   const refreshPickUp = (tags: YouComicAPI.MatchTag[]) => {
     const pickupType: string[] = ['artist', 'name', 'series', 'theme', 'translator', 'type', 'lang', 'magazine', 'societies', 'chapter', 'chapter_number'];
     const pickUpIds: string[] = [];
-    for (let typeString of pickupType) {
+    for (const typeString of pickupType) {
       const tag = pickUpWithType(typeString, tags);
       if (tag) {
         pickUpIds.push(tag.id);
@@ -151,9 +152,9 @@ const MatchTagDialog = ({
     }
     setSelectIds(pickUpIds);
   };
-  const refreshMatchResult = async (text: string, forceReprocess: boolean = false) => {
+  const refreshMatchResult = useCallback(async (inputText: string, forceReprocess: boolean = false) => {
     // 如果文本为空，不进行请求
-    if (!text || text.trim().length === 0) {
+    if (!inputText || inputText.trim().length === 0) {
       return;
     }
 
@@ -169,7 +170,7 @@ const MatchTagDialog = ({
 
     setLoading(true);
     try {
-      const result = await matchTagWithName(text, true, undefined, controller.signal, forceReprocess);
+      const result = await matchTagWithName(inputText, true, undefined, controller.signal, forceReprocess);
       
       // 检查是否已被取消
       if (controller.signal.aborted) {
@@ -189,7 +190,7 @@ const MatchTagDialog = ({
       setLoading(false);
       abortControllerRef.current = null;
     }
-  };
+  }, []);
 
   // 取消当前请求
   const cancelRequest = () => {
@@ -213,13 +214,16 @@ const MatchTagDialog = ({
   };
   useEffect(() => {
     // 只有当 matchText 有值时才进行请求
-    if (matchText && matchText.trim().length > 0) {
-      refreshMatchResult(matchText);
-    }
-  }, [matchText]);
+    const handler = setTimeout(() => {
+      if (matchText && matchText.trim().length > 0) {
+        refreshMatchResult(matchText);
+      }
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [matchText, refreshMatchResult]);
   const getSelectTag = () => {
-    let selectTags: YouComicAPI.MatchTag[] = [];
-    for (let selectId of selectIds) {
+    const selectTags: YouComicAPI.MatchTag[] = [];
+    for (const selectId of selectIds) {
       const selectTag = matchTags.find(it => it.id === selectId);
       if (selectTag) {
         selectTags.push(selectTag);
@@ -358,8 +362,8 @@ const MatchTagDialog = ({
     
     const regexp = new RegExp(regex)
     const result = regexp.exec(value)
-    const newRegexTags:Array<YouComicAPI.MatchTag> = []
-    const selectTags:Array<string> = [...selectIds]
+    const newRegexTags: YouComicAPI.MatchTag[] = []
+    const selectTags: string[] = [...selectIds]
     
     if (result?.groups) {
       Object.getOwnPropertyNames(result.groups).forEach(it => {
@@ -387,8 +391,8 @@ const MatchTagDialog = ({
   }
 
   // 直接添加/移除历史记录中的特定标签
-  const toggleHistoryTagSelection = (historyId: number, tagIndex: number, tag: {name: string, type: string}) => {
-    const tagKey = `${tag.type}-${tag.name}`;
+  const toggleHistoryTagSelection = (historyId: number, tagIndex: number, tagItem: {name: string, type: string}) => {
+    const tagKey = `${tagItem.type}-${tagItem.name}`;
     
     // 检查标签是否已存在于当前匹配标签中
     const existingTagIndex = matchTags.findIndex(matchTag => 
@@ -398,30 +402,28 @@ const MatchTagDialog = ({
     if (existingTagIndex >= 0) {
       // 如果标签已存在，则移除
       const existingTag = matchTags[existingTagIndex];
-      setMatchTags(matchTags.filter(tag => tag.id !== existingTag.id));
+      setMatchTags(matchTags.filter(t => t.id !== existingTag.id));
       setSelectIds(selectIds.filter(id => id !== existingTag.id));
-      message.info(`移除标签: ${tag.type}: ${tag.name} 喵～`);
+      message.info(`移除标签: ${tagItem.type}: ${tagItem.name} 喵～`);
     } else {
       // 如果标签不存在，则添加
       const newTag: YouComicAPI.MatchTag = {
         id: generateId(7),
-        name: tag.name,
-        type: tag.type,
+        name: tagItem.name,
+        type: tagItem.type,
         source: 'llm'
       };
       
       setMatchTags([...matchTags, newTag]);
       setSelectIds([...selectIds, newTag.id]);
-      message.success(`添加标签: ${tag.type}: ${tag.name} 喵～`);
+      message.success(`添加标签: ${tagItem.type}: ${tagItem.name} 喵～`);
     }
   };
   
   // 检查某个历史记录标签是否已被添加到当前标签列表
-  const isHistoryTagAdded = (tag: {name: string, type: string}) => {
-    const tagKey = `${tag.type}-${tag.name}`;
-    return matchTags.some(matchTag => 
-      `${matchTag.type}-${matchTag.name}` === tagKey
-    );
+  const isHistoryTagAdded = (ht: {name: string, type: string}) => {
+    const tagKey = `${ht.type}-${ht.name}`;
+    return matchTags.some(mt => `${mt.type}-${mt.name}` === tagKey);
   };
 
 
@@ -535,6 +537,9 @@ const MatchTagDialog = ({
               </Button>
               <Button size="small" onClick={() => onQuickAdd('chapter_number')}>
                 as Chapter Number
+              </Button>
+              <Button size="small" onClick={() => onQuickAdd('societies')}>
+                as Societies
               </Button>
             </Space>
           </div>
@@ -719,7 +724,7 @@ const MatchTagDialog = ({
                                 const isAdded = isHistoryTagAdded(result);
                                 return (
                                   <Tag 
-                                    key={idx}
+                                    key={`${history.id}-${result.type}-${result.name}-${idx}`}
                                     color={isAdded ? 'green' : (tagColorMapping[result.type as keyof typeof tagColorMapping] || 'default')}
                                     style={{ 
                                       cursor: 'pointer',

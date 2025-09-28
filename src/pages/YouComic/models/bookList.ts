@@ -18,6 +18,7 @@ const bookListModel = () => {
     tagIds: [],
     libraryIds: [],
     library: [],
+    noTags: 'all',
   });
   const [searchTags, setSearchTags] = useState<YouComicAPI.Tag[]>([]);
   const [contextBook, setContextBook] = useState<YouComicAPI.Book | null>(null);
@@ -60,7 +61,8 @@ const bookListModel = () => {
       library: queryFilter.library.map((it: YouComicAPI.Library) => it.id),
       pathSearch: queryFilter.pathSearch,
       tagNameSearch: queryFilter.tagSearch,
-      tagNameSearchType: queryFilter.tagSearchType
+      tagNameSearchType: queryFilter.tagSearchType,
+      noTags: queryFilter.noTags
     } as any)
     if (response.result) {
       setBooks(response.result)
